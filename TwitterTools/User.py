@@ -13,6 +13,8 @@ class User:
     @classmethod
     def from_url(cls, url, following_me = False, following_them = False, protected_account = False):
         handle = url.split("twitter.com/")[1]
+        # If there are additional slashes after the user name, remove everything after that
+        handle = handle.split("/")[0]
         return cls(handle=handle, following_me=following_me, following_them=following_them, protected_account=protected_account)
 
     def __str__(self):
