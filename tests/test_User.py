@@ -139,3 +139,24 @@ def test_equality_13():
     u1 = User.User("kenan")
     u2 = User.User.from_url("https://twitter.com/kenan")
     assert u1 == u2
+
+
+def test_verified_01():
+    u1 = User.User("kenan", verified=True)
+    u2 = User.User.from_url("https://twitter.com/kenan", verified=True)
+    assert u1 == u2
+
+def test_verified_02():
+    u1 = User.User("kenan", verified=False)
+    u2 = User.User.from_url("https://twitter.com/kenan", verified=False)
+    assert u1 == u2
+
+def test_verified_03():
+    u1 = User.User("kenan", verified=True)
+    u2 = User.User.from_url("https://twitter.com/kenan", verified=False)
+    assert u1 != u2
+
+def test_verified_04():
+    u1 = User.User("kenan", verified=False)
+    u2 = User.User.from_url("https://twitter.com/kenan", verified=True)
+    assert u1 != u2

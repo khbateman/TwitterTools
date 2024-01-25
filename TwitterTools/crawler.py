@@ -51,7 +51,42 @@ def create_user_from_div(div):
     
     The `div` argument should be the highest level div before the list-like structure that holds them. It should be in the format of a `selenium` element from querying using `find_elements()`
     '''
-    pass
+    profile_url = ""
+    following_me = False
+    following_them = False
+    protected_account = False
+    verified = False
+    try:
+        profile_url = div.find_element(By.CSS_SELECTOR, "a").get_attribute(name="href")
+
+        # Get all the spans in this div to see if there's the "Follows you" block or if follow button text shows following them
+        for span in div.find_elements(By.TAG_NAME, "span"):
+            if span.text == "Follows you":
+                following_me = True
+            elif span.text == "Follow":
+                following_them = False
+            elif span.text == "Following":
+                following_them = True
+
+        # Check the SVGs to see if the protected account is there
+        # Need to put it in another try block so it doesn't blow
+        # up and error out every non-svg cell
+        try:
+            for svg in div.find_elements(By.TAG_NAME, "svg"):
+                if svg.get_attribute("aria-label") == "Protected account":
+                    protected_account = True
+                elif svg.get_attribute("aria-label") == "Verified account":
+                    verified = True
+        except:
+            pass
+    except:
+        pass
+    
+    return User.from_url(profile_url, 
+                         following_me=following_me, 
+                         following_them=following_them, protected_account=protected_account,
+                         verified=verified)
+
 
 
 def scrape_follow_pages(driver, twitter_handle, following = True, verified_followers = False, followers = False, direct_url = ""):
