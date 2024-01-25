@@ -75,67 +75,67 @@ def test_url_no_base_3():
     user = User.User.from_url("/johnsmith")
     assert user.handle == "johnsmith"
 
-def test_equality_1():
+def test_equality_01():
     u1 = User.User("abc")
     u2 = User.User("abc")
     assert u1 == u2
 
-def test_equality_2():
+def test_equality_02():
     u1 = User.User("abc")
     assert u1 == u1
 
-def test_equality_3():
+def test_equality_03():
     u1 = User.User("abc")
     u2 = User.User("abd")
     assert u1 != u2
 
 
-def test_equality_01():
+def test_equality_04():
     u1 = User.User("abc", True, False, False)
     u2 = User.User("abc", True, False, False)
     assert u1 == u2
 
-def test_equality_02():
+def test_equality_05():
     u1 = User.User("abc", True, False, False)
     u2 = User.User("abd", True, False, False)
     assert u1 != u2
 
-def test_equality_03():
+def test_equality_06():
     u1 = User.User("abc", True, False, False)
     u2 = User.User("abc", False, False, False)
     assert u1 != u2
 
-def test_equality_04():
+def test_equality_07():
     u1 = User.User("abc", True, False, False)
     u2 = User.User("abc", True, True, False)
     assert u1 != u2
 
-def test_equality_05():
+def test_equality_08():
     u1 = User.User("abc", True, False, False)
     u2 = User.User("abc", True, False, True)
     assert u1 != u2
 
-def test_equality_06():
+def test_equality_09():
     u1 = User.User("abc", True, False, False)
     u2 = User.User.from_url("https://twitter.com/abc/", True, False, False)
     assert u1 == u2
 
-def test_equality_07():
+def test_equality_10():
     u1 = User.User("abc", False, True, False)
     u2 = User.User.from_url("https://twitter.com/abc", False, True, False)
     assert u1 == u2
 
-def test_equality_08():
+def test_equality_11():
     u1 = User.User("abc", False, True, False)
     u2 = User.User.from_url("https://twitter.com/abc/something/123", False, True, False)
     assert u1 == u2
 
-def test_equality_09():
+def test_equality_12():
     u1 = User.User("abc", False, True, False)
     u2 = User.User.from_url("https://twitter.com/abc", False, False, False)
     assert u1 != u2
 
-def test_equality_10():
+def test_equality_13():
     u1 = User.User("kenan")
     u2 = User.User.from_url("https://twitter.com/kenan")
     assert u1 == u2
