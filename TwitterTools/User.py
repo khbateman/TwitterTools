@@ -29,7 +29,7 @@ class User:
         return cls(handle=handle, following_me=following_me, following_them=following_them, protected_account=protected_account, verified=verified)
 
     def __str__(self):
-        return "Handle: @" + self.handle + "\nURL: " + self.url + "\nFollowing me: " + str(self.following_me) + "\nFollowing them: " + str(self.following_them)
+        return "Handle: @" + self.handle + "\nURL: " + self.url + "\nFollowing me: " + str(self.following_me) + "\nFollowing them: " + str(self.following_them) + "\nProtected: " + str(self.protected_account) + "\nVerified: " + str(self.verified)
     
     def __eq__(self, other):
         handles_equal = self.handle == other.handle

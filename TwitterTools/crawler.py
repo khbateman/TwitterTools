@@ -43,8 +43,33 @@ def log_in_twitter(driver, username, password, sleep_time = 2):
     time.sleep(1)
 
 
-def create_user_from_div(div):
+def get_all_user_divs(driver):
     '''
+    Function takes in an argument of a `selenium` driver already on a page
+    with a list of users (ex - following page)
+
+    Returns
+    ----
+    `list` of all selenium div container elements for each user
+    '''
+    # Check in case there's no users available, break out
+    try:
+        # Using wildcard XPATH we can find the cells of the users
+        return driver.find_elements(By.XPATH, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[*]""")
+    except:
+        return []
+
+
+
+
+
+def create_user_from_div_v1(div):
+    '''
+    The functionality of this is identical to the below `create_user_from_div` however
+    this is MUCH slower since it tries to find an element by searching using `find_element`,
+    which takes almost twice as long. The optimized version looks for exact XPATHs, which
+    speeds things up considerably
+
     Takes in a div of a user from Twitter.
 
     The div is typically the format where there's a user's profile pic, name, handle, bio, and a Follow / Following button on the right.
@@ -56,6 +81,7 @@ def create_user_from_div(div):
     following_them = False
     protected_account = False
     verified = False
+
     try:
         profile_url = div.find_element(By.CSS_SELECTOR, "a").get_attribute(name="href")
 
@@ -81,7 +107,7 @@ def create_user_from_div(div):
             pass
     except:
         pass
-    
+
     return User.from_url(profile_url, 
                          following_me=following_me, 
                          following_them=following_them, protected_account=protected_account,
@@ -89,14 +115,168 @@ def create_user_from_div(div):
 
 
 
-def scrape_follow_pages(driver, twitter_handle, following = True, verified_followers = False, followers = False, direct_url = ""):
+def create_user_from_div(div):
     '''
-    This function scrapes followers off of follower/following pages and other similarly formatted pages
+    Takes in a div of a user from Twitter.
+
+    The div is typically the format where there's a user's profile pic, name, handle, bio, and a Follow / Following button on the right.
+    
+    The `div` argument should be the highest level div before the list-like structure that holds them. It should be in the format of a `selenium` element from querying using `find_elements()`
+    '''
+    profile_url = ""
+    following_me = False
+    following_them = False
+    protected_account = False
+    verified = False    
+
+    # NOTE - the XPATHs are relative to the div being passed in, 
+    # so each will have a . to start and have ONE LESS div to start (since 
+    # we're relating to THAT div, it doesn't need to appear)
+    try:
+        profile_url = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[1]/div/div[2]/div[1]/a''').get_attribute(name="href")
+    except:
+        pass
+
+    try:
+        follow_button_text = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[2]/div/div/span/span''').text
+
+        if follow_button_text == "Follow":
+            following_them = False
+        elif follow_button_text == "Following":
+            following_them = True
+    except:
+        pass
+
+    # Some pages have a slightly different layout and need this selector path
+    try:
+        follow_button_text = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div/div[2]/div[1]/div/div/span/span''').text
+
+        if follow_button_text == "Follow":
+            following_them = False
+        elif follow_button_text == "Following":
+            following_them = True
+    except:
+        pass
+
+    try:
+        follows_you_text = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[1]/div/div[2]/div[2]/div/span''').text
+
+        if follows_you_text == "Follows you":
+            following_me = True
+    except:
+        pass
+    
+    try:
+        # It is slightly unclear why the final part of the XPATH needs to be a *
+        # rather than svg here. Analyzing the return of the span right before it
+        # shows the next element is svg, but specifying svg makes it fail. 
+        # However, allowing the anything with the * makes it work. 
+        verified_svg_label = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[1]/div/div[1]/a/div/div[2]/span/*''').get_attribute("aria-label")
+        
+        if verified_svg_label == "Verified account":
+            verified = True
+    except:
+        pass
+
+    try:
+        verified_svg_label = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[1]/div/div[1]/a/div/div[2]/span/*[1]''').get_attribute("aria-label")
+
+        if verified_svg_label == "Verified account":
+            verified = True
+    except:
+        pass
+
+
+    # Need to try this twice because sometimes it might be alone and not be second
+    try:
+        protected_svg_label = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div/div[1]/div/div[1]/a/div/div[2]/span/*[1]''').get_attribute("aria-label")
+        if protected_svg_label == "Protected account":
+            protected_account = True
+    except:
+        pass
+
+    try:
+        protected_svg_label = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div/div[1]/div/div[1]/a/div/div[2]/span/*[2]''').get_attribute("aria-label")
+        if protected_svg_label == "Protected account":
+            protected_account = True
+    except:
+        pass
+    
+
+    return User.from_url(profile_url, 
+                         following_me=following_me, 
+                         following_them=following_them, protected_account=protected_account,
+                         verified=verified)
+
+
+
+def scrape_single_follow_page(driver, url):
+    '''
+    This function scrapes followers off of a single follower/following page 
+    (and other similarly formatted pages)
+
+    Returns
+    ----
+    `tuple` : (list of users (type: `User`), 
+               list of strings of user urls)
     '''
     # Since we already have wait times built in here, don't need additional waits
     # that will redundantly slow this down
     driver.implicitly_wait(0.01)
 
+    # Navigate to following page and wait for it to load
+    driver.get(url)
+    time.sleep(1.0)
+
+    users_added = True
+    next_scroll_y = 0
+    users = []
+    user_urls = []
+
+    while users_added:
+        # Get all the divs each time (because they change on scroll)
+        # First scroll so they load, then get the divs
+        driver.execute_script(f"window.scrollTo(0, {next_scroll_y})")
+
+        # Need to briefly wait after scrolling to let new users load
+        time.sleep(2.0)
+        
+        all_divs = get_all_user_divs(driver)
+        
+        if len(all_divs) == 0:
+            break
+        
+        # Change flag back to False. If we find new users, 
+        # it will change to True to keep loop running
+        users_added = False
+        next_scroll_y += 1000
+
+        # Go from the last div at the bottom towards the top
+        for div in all_divs[::-1]:
+            try:
+                user = create_user_from_div(div)
+
+                if user.url in user_urls:
+                    break
+                else:
+                    users.append(user)
+                    user_urls.append(user.url)
+                    users_added = True
+            except:
+                pass
+
+    # Change driver back to a 5 second wait
+    driver.implicitly_wait(5)
+
+    return users, user_urls
+
+
+
+def scrape_follow_pages(driver, twitter_handle, following = True, verified_followers = False, followers = False, direct_url = ""):
+    '''
+    This function scrapes followers off of follower/following pages and other similarly formatted pages
+    '''
+    
     urls_to_scrape = []
 
     # Handling direct URLs to pages with "follow" formats (ex - post retweet / like pages)
@@ -116,92 +296,14 @@ def scrape_follow_pages(driver, twitter_handle, following = True, verified_follo
             urls_to_scrape.append(f"https://twitter.com/{twitter_handle}/followers")
 
 
-    # print(urls_to_scrape)
     users = []
     user_urls = []
 
     for url in urls_to_scrape:
-        # print("getting url", url)
-        # Navigate to following page
-        driver.get(url)
-        time.sleep(1.0)
-
-        users_added = True
-        next_scroll_y = 0
-        tmp_users = []
-        tmp_user_urls = []
-
-        while users_added:
-            # print("running again scrolled to", next_scroll_y)
-            # Get all the divs each time (because they change on scroll)
-            # First scroll so they load, then get the divs
-            driver.execute_script(f"window.scrollTo(0, {next_scroll_y})")
-
-            # Need to briefly wait after scrolling to let new users load
-            time.sleep(2.0)
-
-            # Check in case there's no users available, break out
-            try:
-                # Using wildcard XPATH we can find the cells of the users
-                all_divs = driver.find_elements(By.XPATH, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[*]""")
-            except:
-                all_divs = []
-            
-            if len(all_divs) == 0:
-                break
-            
-
-            # print(len(all_divs))
-
-            users_added = False
-            next_scroll_y += 1000
-
-            # Go from the last div at the bottom towards the top
-            for div in all_divs[::-1]:
-                try:
-                    profile_url = div.find_element(By.CSS_SELECTOR, "a").get_attribute(name="href")
-
-                    if profile_url in tmp_user_urls:
-                        break
-                    else:
-                        following_me = False
-                        following_them = False
-                        protected_account = False
-                        # Get all the spans in this div to see if there's the "Follows you" block or if follow button text shows following them
-                        for span in div.find_elements(By.TAG_NAME, "span"):
-                            if span.text == "Follows you":
-                                following_me = True
-                            elif span.text == "Follow":
-                                following_them = False
-                            elif span.text == "Following":
-                                following_them = True
-
-                        # Check the SVGs to see if the protected account is there
-                        # Need to put it in another try block so it doesn't blow
-                        # up and error out every non-svg cell
-                        try:
-                            for svg in div.find_elements(By.TAG_NAME, "svg"):
-                                if svg.get_attribute("aria-label") == "Protected account":
-                                    protected_account = True
-                        except:
-                            # print("svg blew it up")
-                            pass
-
-
-                        user = User.from_url(profile_url, following_me=following_me, following_them=following_them, protected_account=protected_account)
-                        # print(f" - {user.handle} is not in users", end="")
-                        tmp_users.append(user)
-                        tmp_user_urls.append(profile_url)
-                        users_added = True
-
-                        # print("got to the end")
-                except:
-                    pass
-
+        tmp_users, tmp_user_urls = scrape_single_follow_page(driver, url)
         users += tmp_users   
         user_urls += tmp_user_urls 
-
-    driver.implicitly_wait(5)
+    
     return users
 
 
