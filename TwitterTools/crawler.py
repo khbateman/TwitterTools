@@ -308,6 +308,44 @@ def scrape_follow_pages(driver, twitter_handle, following = True, verified_follo
 
 
 
+def get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_checking_after_days_threshold_met = 7):
+
+    # Checks the most recent date of post or post liked. Start with big number
+    time_since_most_recent_activity = timedelta(days=9999)
+
+    driver.get(url)
+    time.sleep(2)
+
+    # Get the div that holds user Tweets
+    # In rare cases where this user no longer exists, this element can't be found
+    # so return a default big number and exit so Exception isn't thrown
+    try:
+        post_divs = driver.find_elements(By.XPATH, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/section/div/div/div[*]""")
+    except:
+        return timedelta(days=9999)
+    
+    for div in post_divs:
+        if time_since_most_recent_activity.days < stop_checking_after_days_threshold_met:
+            break
+        try:
+            # The times are enclosed in <time> tags. Find the first one
+            first_time_tag_element = div.find_element(By.TAG_NAME, "time")
+
+            # Get the datetime attribute from this tag and parse it from format
+            # 2023-09-28T10:41:25.000Z
+            post_date = datetime.strptime(first_time_tag_element.get_attribute("datetime"), "%Y-%m-%dT%H:%M:%S.%fZ")
+                            
+            time_since_post = datetime.today() - post_date
+
+            if time_since_post < time_since_most_recent_activity:
+                time_since_most_recent_activity = time_since_post
+            
+        except:
+            pass
+
+    return time_since_most_recent_activity
+
+
 def get_time_lapsed_since_most_recent_activity(driver, base_profile_url, stop_checking_after_days_threshold_met = 7):
 
     # Checks the most recent date of post or post liked 
@@ -318,41 +356,42 @@ def get_time_lapsed_since_most_recent_activity(driver, base_profile_url, stop_ch
     three_pages = [base_profile_url, base_profile_url + "/with_replies", base_profile_url + "/likes"]
 
 
-    tweet_cell_xpath = """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/section/div/div/div[*]"""
+    # tweet_cell_xpath = """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/section/div/div/div[*]"""
 
     # Go to base profile, replies, and likes and crawl posts
     for page in three_pages:
         if time_since_most_recent_activity.days < stop_checking_after_days_threshold_met:
             break
 
-        driver.get(page)
-        time.sleep(2)
-        # Get the div that holds user Tweets
-        # In rare cases where this user no longer exists, this element can't be found
-        # so return a default big number and exit so Exception isn't thrown
-        try:
-            post_divs = driver.find_elements(By.XPATH, tweet_cell_xpath)
-        except:
-            return timedelta(days=9999)
+        # driver.get(page)
+        # time.sleep(2)
 
-        for div in post_divs:
-            if time_since_most_recent_activity.days < stop_checking_after_days_threshold_met:
-                    break
-            try:
-                # The times are enclosed in <time> tags. Find the first one
-                first_time_tag_element = div.find_element(By.TAG_NAME, "time")
+        # # Get the div that holds user Tweets
+        # # In rare cases where this user no longer exists, this element can't be found
+        # # so return a default big number and exit so Exception isn't thrown
+        # try:
+        #     post_divs = driver.find_elements(By.XPATH, tweet_cell_xpath)
+        # except:
+        #     return timedelta(days=9999)
 
-                # Get the datetime attribute from this tag and parse it from format
-                # 2023-09-28T10:41:25.000Z
-                post_date = datetime.strptime(first_time_tag_element.get_attribute("datetime"), "%Y-%m-%dT%H:%M:%S.%fZ")
+        # for div in post_divs:
+        #     if time_since_most_recent_activity.days < stop_checking_after_days_threshold_met:
+        #             break
+        #     try:
+        #         # The times are enclosed in <time> tags. Find the first one
+        #         first_time_tag_element = div.find_element(By.TAG_NAME, "time")
+
+        #         # Get the datetime attribute from this tag and parse it from format
+        #         # 2023-09-28T10:41:25.000Z
+        #         post_date = datetime.strptime(first_time_tag_element.get_attribute("datetime"), "%Y-%m-%dT%H:%M:%S.%fZ")
                                 
-                time_since_post = datetime.today() - post_date
+        #         time_since_post = datetime.today() - post_date
 
-                if time_since_post < time_since_most_recent_activity:
-                    time_since_most_recent_activity = time_since_post
+        #         if time_since_post < time_since_most_recent_activity:
+        #             time_since_most_recent_activity = time_since_post
                 
-            except:
-                pass
+        #     except:
+        #         pass
         
     return time_since_most_recent_activity
 

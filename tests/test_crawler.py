@@ -1,6 +1,8 @@
 from TwitterTools import crawler, User
 from selenium.webdriver.common.by import By
 import os
+from datetime import datetime, timedelta
+from math import floor
 
 
 
@@ -297,51 +299,241 @@ import os
 
 
 
-def test_scrape_single_follow_page_01(get_driver):
+# def test_scrape_single_follow_page_01(get_driver):
+#     current_dir = os.path.dirname(__file__)
+#     file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_1.html")
+
+#     users, urls = crawler.scrape_single_follow_page(get_driver, "file://" + file_path)
+
+#     assert len(users) == 19
+#     assert len(urls) == 19
+
+#     # Since it scrapes back to front, to get the ones from the top, using negative indexing
+#     test_user_1 = users[-1]
+#     test_url_1 = urls[-1]
+#     assert test_user_1.handle == "Sentdex"
+#     assert test_user_1.url == test_url_1
+#     assert test_user_1.following_me == False
+#     assert test_user_1.following_them == True
+#     assert test_user_1.protected_account == False
+#     assert test_user_1.verified == True
+
+#     test_user_2 = users[-2]
+#     test_url_2 = urls[-2]
+#     assert test_user_2.handle == "kenansandbox"
+#     assert test_user_2.url == test_url_2
+#     assert test_user_2.following_me == True
+#     assert test_user_2.following_them == True
+#     assert test_user_2.protected_account == True
+#     assert test_user_2.verified == False
+
+#     test_user_3 = users[-11]
+#     test_url_3 = urls[-11]
+#     assert test_user_3.handle == "cybertruck"
+#     assert test_user_3.url == test_url_3
+#     assert test_user_3.following_me == False
+#     assert test_user_3.following_them == True
+#     assert test_user_3.protected_account == False
+#     assert test_user_3.verified == True
+
+
+
+
+# def test_scrape_single_follow_page_02(get_driver):
+#     current_dir = os.path.dirname(__file__)
+#     file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_2.html")
+
+#     users, urls = crawler.scrape_single_follow_page(get_driver, "file://" + file_path)
+
+#     assert len(users) == 32
+#     assert len(urls) == 32
+
+
+
+def create_time_html_string(days_before_now):
+    '''
+    Helper method for `create_test_tweets_page_html_with_relative_times`
+    
+    Creates string in the following format for html page
+    ----
+    `2024-01-26T21:13:24.000Z">55s`
+    '''
+
+    shift = timedelta(days = days_before_now)
+    shifted_time = datetime.now() - shift
+
+    if days_before_now < 1:
+        if shift.seconds < 60:
+            display_text = str(shift.seconds) + "s"
+        elif shift.seconds < 3600:
+            display_text = str(shift.seconds // 60) + "m"
+        else:
+            display_text = str(shift.seconds // 3600) + "h"
+    elif shifted_time.year == datetime.now().year:
+        display_text = datetime.strftime(shifted_time, "%b %-d")
+    else:
+        display_text = datetime.strftime(shifted_time, "%b %-d, %Y")
+
+    return datetime.strftime(shifted_time, "%Y-%m-%dT%H:%M:%S.000Z") + '">' + display_text
+
+
+def create_test_tweets_page_html_with_relative_times(tweet1_days_since, tweet2_days_since, tweet3_days_since, tweet4_days_since, tweet5_days_since, tweet6_days_since):
+    '''
+    Creates a duplicate of page test/Testing_Resources/test_tweets_page.html
+    with dynamic times to aid in specific test cases below
+    '''
+    # tweet_1_date_string = '''2024-01-26T21:13:24.000Z">55s'''
+    # tweet_2_date_string = '''2024-01-26T18:45:45.000Z">2h'''
+    # tweet_3_date_string = '''2024-01-26T18:46:11.000Z">2h'''
+    # tweet_4_date_string = '''2024-01-26T17:23:40.000Z">3h'''
+    # tweet_5_date_string = '''2024-01-26T14:26:30.000Z">6h'''
+    # tweet_6_date_string = '''2024-01-26T14:15:00.000Z">7h'''
+
+    tweet_1_date_string = create_time_html_string(tweet1_days_since)
+    tweet_2_date_string = create_time_html_string(tweet2_days_since)
+    tweet_3_date_string = create_time_html_string(tweet3_days_since)
+    tweet_4_date_string = create_time_html_string(tweet4_days_since)
+    tweet_5_date_string = create_time_html_string(tweet5_days_since)
+    tweet_6_date_string = create_time_html_string(tweet6_days_since)
+
+    full_html = ""
     current_dir = os.path.dirname(__file__)
-    file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_1.html")
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p1.txt")).readlines())
+    full_html += tweet_1_date_string
 
-    users, urls = crawler.scrape_single_follow_page(get_driver, "file://" + file_path)
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p2.txt")).readlines())
+    full_html += tweet_2_date_string
 
-    assert len(users) == 19
-    assert len(urls) == 19
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p3.txt")).readlines())
+    full_html += tweet_3_date_string
 
-    # Since it scrapes back to front, to get the ones from the top, using negative indexing
-    test_user_1 = users[-1]
-    test_url_1 = urls[-1]
-    assert test_user_1.handle == "Sentdex"
-    assert test_user_1.url == test_url_1
-    assert test_user_1.following_me == False
-    assert test_user_1.following_them == True
-    assert test_user_1.protected_account == False
-    assert test_user_1.verified == True
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p4.txt")).readlines())
+    full_html += tweet_4_date_string
 
-    test_user_2 = users[-2]
-    test_url_2 = urls[-2]
-    assert test_user_2.handle == "kenansandbox"
-    assert test_user_2.url == test_url_2
-    assert test_user_2.following_me == True
-    assert test_user_2.following_them == True
-    assert test_user_2.protected_account == True
-    assert test_user_2.verified == False
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p5.txt")).readlines())
+    full_html += tweet_5_date_string
 
-    test_user_3 = users[-11]
-    test_url_3 = urls[-11]
-    assert test_user_3.handle == "cybertruck"
-    assert test_user_3.url == test_url_3
-    assert test_user_3.following_me == False
-    assert test_user_3.following_them == True
-    assert test_user_3.protected_account == False
-    assert test_user_3.verified == True
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p6.txt")).readlines())
+    full_html += tweet_6_date_string
+
+    full_html += "".join(open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_p7.txt")).readlines())
+
+    with open(os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html"), "w") as f:
+        f.write(full_html)
 
 
 
-
-def test_scrape_single_follow_page_02(get_driver):
+def test_get_time_lapsed_since_most_recent_activity_single_page_01(get_driver):
+    create_test_tweets_page_html_with_relative_times(tweet1_days_since = 0.0005, 
+                                                 tweet2_days_since = 0.005, 
+                                                 tweet3_days_since = 0.5, 
+                                                 tweet4_days_since = 20, 
+                                                 tweet5_days_since = 365, 
+                                                 tweet6_days_since = 400)
+    
     current_dir = os.path.dirname(__file__)
-    file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_2.html")
+    file_path = os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html")
 
-    users, urls = crawler.scrape_single_follow_page(get_driver, "file://" + file_path)
+    time_since = crawler.get_time_lapsed_since_most_recent_activity_single_page(
+                                            get_driver,
+                                            url="file://" + file_path)
+    
+    # Check these are within 10 seconds of each other (since processing time varies)
+    assert (time_since - timedelta(days = 0.0005)) < timedelta(seconds=10)
 
-    assert len(users) == 32
-    assert len(urls) == 32
+
+def test_get_time_lapsed_since_most_recent_activity_single_page_02(get_driver):
+    create_test_tweets_page_html_with_relative_times(tweet1_days_since = 0.004, 
+                                                 tweet2_days_since = 0.005, 
+                                                 tweet3_days_since = 0.5, 
+                                                 tweet4_days_since = 20, 
+                                                 tweet5_days_since = 365, 
+                                                 tweet6_days_since = 400)
+    
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html")
+
+    time_since = crawler.get_time_lapsed_since_most_recent_activity_single_page(
+                                            get_driver,
+                                            url="file://" + file_path)
+    
+    # Check these are within 10 seconds of each other (since processing time varies)
+    assert (time_since - timedelta(days = 0.004)) < timedelta(seconds=10)
+
+
+def test_get_time_lapsed_since_most_recent_activity_single_page_03(get_driver):
+    create_test_tweets_page_html_with_relative_times(tweet1_days_since = 0.3, 
+                                                 tweet2_days_since = 0.4, 
+                                                 tweet3_days_since = 0.5, 
+                                                 tweet4_days_since = 20, 
+                                                 tweet5_days_since = 365, 
+                                                 tweet6_days_since = 400)
+    
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html")
+
+    time_since = crawler.get_time_lapsed_since_most_recent_activity_single_page(
+                                            get_driver,
+                                            url="file://" + file_path)
+    
+    # Check these are within 10 seconds of each other (since processing time varies)
+    assert (time_since - timedelta(days = 0.3)) < timedelta(seconds=10)
+
+
+def test_get_time_lapsed_since_most_recent_activity_single_page_04(get_driver):
+    create_test_tweets_page_html_with_relative_times(tweet1_days_since = 0.039, 
+                                                 tweet2_days_since = 0.04, 
+                                                 tweet3_days_since = 0.5, 
+                                                 tweet4_days_since = 20, 
+                                                 tweet5_days_since = 365, 
+                                                 tweet6_days_since = 400)
+    
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html")
+
+    time_since = crawler.get_time_lapsed_since_most_recent_activity_single_page(
+                                            get_driver,
+                                            url="file://" + file_path)
+    
+    # Check these are within 10 seconds of each other (since processing time varies)
+    assert (time_since - timedelta(days = 0.039)) < timedelta(seconds=10)
+
+def test_get_time_lapsed_since_most_recent_activity_single_page_05(get_driver):
+    create_test_tweets_page_html_with_relative_times(tweet1_days_since = 0.900, 
+                                                 tweet2_days_since = 901, 
+                                                 tweet3_days_since = 902, 
+                                                 tweet4_days_since = 903, 
+                                                 tweet5_days_since = 904, 
+                                                 tweet6_days_since = 905)
+    
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html")
+
+    time_since = crawler.get_time_lapsed_since_most_recent_activity_single_page(
+                                            get_driver,
+                                            url="file://" + file_path)
+    
+    # Check these are within 10 seconds of each other (since processing time varies)
+    assert (time_since - timedelta(days = 900)) < timedelta(seconds=10)
+
+
+def test_get_time_lapsed_since_most_recent_activity_single_page_06(get_driver):
+    # Simulating pinned tweets where early tweets aren't necessarily newest
+    create_test_tweets_page_html_with_relative_times(tweet1_days_since = 500, 
+                                                 tweet2_days_since = 650, 
+                                                 tweet3_days_since = 3, 
+                                                 tweet4_days_since = 10, 
+                                                 tweet5_days_since = 15, 
+                                                 tweet6_days_since = 18)
+    
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "Testing_Resources/test_tweets_page_tmp.html")
+
+    time_since = crawler.get_time_lapsed_since_most_recent_activity_single_page(
+                                            get_driver,
+                                            url="file://" + file_path)
+    
+    # Check these are within 10 seconds of each other (since processing time varies)
+    assert (time_since - timedelta(days = 3)) < timedelta(seconds=10)
+
+
