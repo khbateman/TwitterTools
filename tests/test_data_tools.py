@@ -413,7 +413,7 @@ def test_combine_dataframes_03():
     assert final_df.iloc[1, 1] == 8
     assert final_df.iloc[1, 2] == 7
     assert final_df.iloc[1, 3] == 10
-    assert final_df.iloc[1, 4] == 9 
+    assert final_df.iloc[1, 4] == 9
 
 
 def test_combine_dataframes_04():

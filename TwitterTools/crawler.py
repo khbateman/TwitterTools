@@ -21,7 +21,7 @@ from .user_management import *
 
 
 
-def create_driver():
+def create_driver_2():
     # Launch driver and open webpage
     options = webdriver.safari.options.Options()
     driver = webdriver.Safari(options=options)
