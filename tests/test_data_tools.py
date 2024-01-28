@@ -346,3 +346,111 @@ def test_setup_data_files_02(create_working_dir_with_data_dir):
     files_in_dir = os.listdir(os.path.join(create_working_dir_with_data_dir, data_tools._get_data_dir_name()))
 
     assert set(["following.xlsx", "accounts_to_follow.xlsx", "accounts_to_skip.xlsx"]).issubset(set(files_in_dir))
+
+
+def test_save_df_to_excel_01(create_working_dir_with_data_dir):
+    # Read the file and save it right back to make sure there are no issues
+    data_tools.setup_data_files()
+
+    df = pd.read_excel(os.path.join(create_working_dir_with_data_dir, data_tools._get_data_dir_name(), "following.xlsx"))
+
+    row = pd.DataFrame([["somehandle", "someurl.com", True, True, '2023-09-15 08:00:00']], columns = df.columns)
+
+    df = pd.concat([df, row])
+
+    data_tools.save_df_to_excel(df, "following.xlsx")
+
+    # just making sure nothing errors out, no assertion
+
+
+def test_combine_dataframes_01():
+    df1 = pd.DataFrame([[1, 2, 3, 4, 5]], columns = ["a", "b", "c", "d", "e"])
+    df2 = pd.DataFrame([[6, 7, 8, 9, 10]], columns = ["f", "g", "h", "i", "j"])
+
+    final_df = data_tools.combine_dataframes(df1, df2)
+
+    # Make sure data is there and columns are correct
+    assert final_df.shape == (2, 5)
+    assert final_df.columns[0] == "a"
+    assert final_df.columns[1] == "b"
+    assert final_df.columns[2] == "c"
+    assert final_df.columns[3] == "d"
+    assert final_df.columns[4] == "e"
+
+
+def test_combine_dataframes_02():
+    df1 = pd.DataFrame([[1, 2, 3, 4, 5]], columns = ["a", "b", "c", "d", "e"])
+    df2 = pd.DataFrame([[6, 7, 8, 9, 10], [11, 12, 13, 14, 15]], columns = ["f", "g", "h", "i", "j"])
+
+    final_df = data_tools.combine_dataframes(df1, df2)
+
+    # Make sure data is there and columns are correct
+    assert final_df.shape == (3, 5)
+    assert final_df.columns[0] == "a"
+    assert final_df.columns[1] == "b"
+    assert final_df.columns[2] == "c"
+    assert final_df.columns[3] == "d"
+    assert final_df.columns[4] == "e"
+
+
+def test_combine_dataframes_03():
+    # Columns match but in different order
+    df1 = pd.DataFrame([[1, 2, 3, 4, 5]], columns = ["a", "b", "c", "d", "e"])
+    df2 = pd.DataFrame([[6, 7, 8, 9, 10]], columns = ["a", "c", "b", "e", "d"])
+
+    final_df = data_tools.combine_dataframes(df1, df2)
+
+    # Make sure data is there and columns are correct
+    assert final_df.shape == (2, 5)
+    assert final_df.columns[0] == "a"
+    assert final_df.columns[1] == "b"
+    assert final_df.columns[2] == "c"
+    assert final_df.columns[3] == "d"
+    assert final_df.columns[4] == "e"
+
+    # Make sure cols were mapped correctly
+    assert final_df.iloc[1, 0] == 6
+    assert final_df.iloc[1, 1] == 8
+    assert final_df.iloc[1, 2] == 7
+    assert final_df.iloc[1, 3] == 10
+    assert final_df.iloc[1, 4] == 9
+
+
+def test_combine_dataframes_04():
+    df1 = pd.DataFrame([[1, 2, 3, 4, 5]], columns = ["a", "b", "c", "d", "e"])
+    df2 = pd.DataFrame([[6, 7, 8, 9, 10, 11]])
+
+    final_df = data_tools.combine_dataframes(df1, df2)
+
+    # Too many columns in df2, result should be df1
+    assert final_df.shape == (1, 5)
+    assert final_df.columns[0] == "a"
+    assert final_df.columns[1] == "b"
+    assert final_df.columns[2] == "c"
+    assert final_df.columns[3] == "d"
+    assert final_df.columns[4] == "e"
+    assert final_df.iloc[0, 0] == 1
+    assert final_df.iloc[0, 1] == 2
+    assert final_df.iloc[0, 2] == 3
+    assert final_df.iloc[0, 3] == 4
+    assert final_df.iloc[0, 4] == 5
+
+def test_combine_dataframes_05():
+    df1 = pd.DataFrame([[1, 2, 3, 4, 5]], columns = ["a", "b", "c", "d", "e"])
+    df2 = pd.DataFrame([[6, 7, 8, 9, 10, 11]], columns = ["a", "b", "c", "d", "f", "e"])
+
+    final_df = data_tools.combine_dataframes(df1, df2)
+
+    # Too many columns in df2, BUT the columns from df1 are there
+    # column f should be dropped and the rest mapped to append the df
+    assert final_df.shape == (2, 5)
+    assert final_df.columns[0] == "a"
+    assert final_df.columns[1] == "b"
+    assert final_df.columns[2] == "c"
+    assert final_df.columns[3] == "d"
+    assert final_df.columns[4] == "e"
+    assert final_df.iloc[1, 0] == 6
+    assert final_df.iloc[1, 1] == 7
+    assert final_df.iloc[1, 2] == 8
+    assert final_df.iloc[1, 3] == 9
+    assert final_df.iloc[1, 4] == 11

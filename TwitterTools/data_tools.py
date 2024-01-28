@@ -86,14 +86,20 @@ def setup_data_files():
     validate_or_create_file("accounts_to_skip.xlsx", _get_accounts_to_skip_cols())
 
 
-def save_df_to_excel(df):
-    # Sort by date and clean up index values (from adding rows)
-    df.sort_values(by = ["followed_before"], ascending = False, inplace=True)
+def save_df_to_excel(df, file_name):
+    # For the following.xlsx file, sort by the date they were followed
+    try:
+        # Sort by date and clean up index values (from adding rows)
+        df.sort_values(by = ["followed_before"], ascending = False, inplace=True)
+    except:
+        pass
+
+    # Clean up index values
     df.reset_index(drop=True, inplace = True)
 
     # Save it and size excel columns so data is viewable
     # Use this writer so certain column widths can be set
-    writer = pd.ExcelWriter('following.xlsx')
+    writer = pd.ExcelWriter(os.path.join(_get_data_dir_name(), file_name))
     df.to_excel(writer, index=False, sheet_name='Sheet1')
 
     # Get the column widths
@@ -106,7 +112,42 @@ def save_df_to_excel(df):
     # writer.sheets['Sheet1'].set_column(df.columns.get_loc("date"), df.columns.get_loc("date"), 19.0)
     # writer.sheets['Sheet1'].set_column(df.columns.get_loc("tweet"), df.columns.get_loc("tweet"), 124.0)
     
-    writer.save() 
+    writer.close() 
+
+
+def combine_dataframes(df1, df2):
+    '''
+    Adds the rows from df2 to the bottom of df1
+
+    If dataframes have the same number of columns, 
+    columns will be preserved from df1 and df2 will
+    be forced into those columns
+
+    If they have a different number of columns, df1 will be returned
+    and df2 will **NOT** be appended
+
+    if df2 has the same columns as df1 but EXTRA columns, the extras
+    will be dropped and the remaining df2 will be appended
+    '''
+    # columns can be mapped. Since they may be in a different order,
+    # remap them using df1 cols
+    if set(df1.columns).issubset(set(df2.columns)):
+        remapped_df2 = df2.loc[:, df1.columns]
+        final_df = pd.concat([df1, remapped_df2], axis = 0)
+
+    # If they have the same number of columns, force df2 to df1 cols
+    elif df1.shape[1] == df2.shape[1]:
+        df2.columns = df1.columns
+        final_df = pd.concat([df1, df2], axis = 0)
+
+    else:
+        print("NOTE: The columns of df2 can't be mapped to df1. Returning df1")
+        return df1
+
+    # Clean up index values
+    final_df.reset_index(drop=True, inplace = True)
+
+    return final_df
 
 
 
