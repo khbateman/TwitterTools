@@ -374,7 +374,8 @@ def get_time_lapsed_since_most_recent_activity(driver, base_profile_url, stop_ch
     return time_since_most_recent_activity
 
 
-
+def show_ready_to_unfollow_count():
+    pass
 
 
 def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tabs=5, only_show_unfollow_count = False): 
