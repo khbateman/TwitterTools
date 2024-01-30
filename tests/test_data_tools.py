@@ -1,9 +1,11 @@
 import pytest
 import time
 import os
-from TwitterTools import data_tools
+from TwitterTools import data_tools, User
 import pandas as pd
 import shutil
+from datetime import datetime
+import numpy as np
 
 @pytest.fixture(scope="function")
 def create_working_dir(tmpdir_factory):
@@ -50,6 +52,55 @@ def lists_match(list1, list2):
         all_items_match = False
 
     return all_items_match
+
+
+def compare_tmp_file_with_test_file(tmp_dir, tmp_file_name, testing_file_name, cols_to_ignore = []):
+    current_dir = os.path.dirname(__file__)
+    testing_file_path = os.path.join(current_dir, "Testing_Resources", testing_file_name)
+    tmp_file_path = os.path.join(tmp_dir, data_tools._get_data_dir_name(),tmp_file_name)
+
+    tmp_df = pd.read_excel(tmp_file_path)
+    test_df = pd.read_excel(testing_file_path)
+
+    # First need to remove any cols that we don't 
+    # want to compare
+    test_df_cols = list(test_df.columns)
+    tmp_df_cols = list(tmp_df.columns)
+
+    for col in cols_to_ignore:
+        try:
+            test_df_cols.remove(col)
+        except:
+            pass
+
+        try:
+            tmp_df_cols.remove(col)
+        except:
+            pass
+    
+    # Need to remove those cols for comparison
+    tmp_df = tmp_df.loc[:, tmp_df_cols]
+    test_df = test_df.loc[:, test_df_cols]
+
+
+    try:
+        if tmp_df.shape == test_df.shape:
+
+            # Check cols match
+            if len(tmp_df.columns) == len(test_df.columns):
+                cols_match = True
+                for i in range(len(test_df.columns)):
+                    if tmp_df.columns[i] != test_df.columns[i]:
+                        cols_match = False
+                
+                if cols_match:
+                    # if we get here, columns and shape match, so check data
+                    if np.all(tmp_df.loc[:, tmp_df_cols] == test_df.loc[:, test_df_cols]):
+                        return True
+    except:
+        return False
+
+    return False
 
 
 
@@ -454,3 +505,195 @@ def test_combine_dataframes_05():
     assert final_df.iloc[1, 2] == 8
     assert final_df.iloc[1, 3] == 9
     assert final_df.iloc[1, 4] == 11
+
+
+
+def test_users_list_to_following_df_01():
+    user_1 = User.User("johnsmith")
+    user_2 = User.User("jessicaDavis", following_me=True, verified=True)
+    user_3 = User.User("UNC_athletics", following_them=True, protected_account=True)
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, datetime.now()],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", True, False, datetime.now()],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, True, datetime.now()]],
+        columns = data_tools._get_following_cols())
+    
+    output_df = data_tools.users_list_to_following_df([user_1, user_2, user_3])
+
+    cols_to_compare = data_tools._get_following_cols()
+    cols_to_compare.remove("followed_before")
+
+
+    assert np.all(df.loc[:, cols_to_compare] == output_df.loc[:, cols_to_compare])
+    
+    # Date col is omitted above since it will always vary slightly 
+    # with repeated use of datetime.now(). Just check date matches (not time)
+    assert output_df.loc[0, "followed_before"].year == datetime.now().year
+    assert output_df.loc[0, "followed_before"].month == datetime.now().month
+    assert output_df.loc[0, "followed_before"].day == datetime.now().day
+
+
+def test_users_list_to_following_df_02():
+    # This should return an empty df, not fail
+    
+    output_df = data_tools.users_list_to_following_df([1, 2, 3])
+
+    assert output_df.shape == (0, 5)
+    assert set(output_df.columns).issubset(set(data_tools._get_following_cols()))
+
+def test_users_list_to_following_df_03():
+    # Test to see if extra non-User elements don't fail, and everything else still gets populated
+    user_1 = User.User("johnsmith")
+    user_2 = User.User("jessicaDavis", following_me=True, verified=True)
+    user_3 = User.User("UNC_athletics", following_them=True, protected_account=True)
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, datetime.now()],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", True, False, datetime.now()],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, True, datetime.now()]],
+        columns = data_tools._get_following_cols())
+    
+    output_df = data_tools.users_list_to_following_df([user_1, 2, user_2, 3, user_3, 4])
+
+    cols_to_compare = data_tools._get_following_cols()
+    cols_to_compare.remove("followed_before")
+
+
+    assert np.all(df.loc[:, cols_to_compare] == output_df.loc[:, cols_to_compare])
+    
+    # Date col is omitted above since it will always vary slightly 
+    # with repeated use of datetime.now(). Just check date matches (not time)
+    assert output_df.loc[0, "followed_before"].year == datetime.now().year
+    assert output_df.loc[0, "followed_before"].month == datetime.now().month
+    assert output_df.loc[0, "followed_before"].day == datetime.now().day
+
+
+def test_testing_func_compare_tmp_file_with_test_file_01(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_empty.xlsx")
+
+
+def test_testing_func_compare_tmp_file_with_test_file_02(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+    assert not compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_05.xlsx")
+
+
+def test_testing_func_compare_tmp_file_with_test_file_03(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("following_04.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    # Same data but cols flipped
+    assert not compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_01.xlsx")
+
+def test_testing_func_compare_tmp_file_with_test_file_04(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("following_02.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    # Cols don't match (extra)
+    assert not compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_01.xlsx")
+
+
+def test_testing_func_compare_tmp_file_with_test_file_05(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("following_02.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    # Cols don't match (extra col, but it's ignored, so it should match)
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_01.xlsx", cols_to_ignore = ["extra_col"])
+
+def test_testing_func_compare_tmp_file_with_test_file_06(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("following_02.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    # Same as above test, but col name is wrong, so it doesn't match anything
+    # So now nothing should be removed and they should again not match
+    assert not compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_01.xlsx", cols_to_ignore = ["extra_cols"])
+
+
+def test_following_users_df_to_excel_01(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, datetime(2024, 1, 29, 8, 4)],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", True, False, datetime(2024, 1, 29, 8, 3)],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, True, datetime(2024, 1, 29, 8, 2)]],
+        columns = data_tools._get_following_cols())
+
+    data_tools.following_users_df_to_excel(df)
+
+    # Basic test where existing following.xlsx is empty and the new rows are added
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_06.xlsx", cols_to_ignore = ["followed_before"])
+
+
+def test_following_users_df_to_excel_02(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    df = pd.DataFrame(columns = data_tools._get_following_cols())
+
+    copy_file_from_testing_resources_to_tmp_dir("following_06.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    data_tools.following_users_df_to_excel(df)
+
+    # Basic test where existing following.xlsx has rows already
+    # and new dataframe is empty. So it should stay the same
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_06.xlsx", cols_to_ignore = ["followed_before"])
+
+
+def test_following_users_df_to_excel_03(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", True, False],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, True]],
+        columns = ["handle", "url", "following_me", "following_them"])
+
+    
+    copy_file_from_testing_resources_to_tmp_dir("following_01.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    data_tools.following_users_df_to_excel(df)
+
+    # Basic test where existing following.xlsx has rows already
+    # and new dataframe has incorrect columns. So nothing is added.
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_01.xlsx", cols_to_ignore = ["followed_before"])
+
+
+def test_following_users_df_to_excel_04(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, datetime(2024, 1, 29, 8, 4)],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", True, False, datetime(2024, 1, 29, 8, 3)],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, True, datetime(2024, 1, 29, 8, 2)]],
+        columns = data_tools._get_following_cols())
+    
+    copy_file_from_testing_resources_to_tmp_dir("following_01.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    data_tools.following_users_df_to_excel(df)
+
+    # Basic test where existing following.xlsx has rows already
+    # and new dataframe is added successfully
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_07.xlsx", cols_to_ignore = ["followed_before"])
+
+
+def test_following_users_df_to_excel_05(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    df = pd.DataFrame([
+        ["kenanbateman", "https://twitter.com/kenanbateman", False, True, datetime(2024, 1, 29, 8, 6)],
+        ["someaccount", "https://twitter.com/someaccount", True, True, datetime(2024, 1, 29, 8, 5)],
+        ["johnsmith", "https://twitter.com/johnsmith", False, True, datetime(2024, 1, 29, 8, 4)],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", True, True, datetime(2024, 1, 29, 8, 3)],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", True, True, datetime(2024, 1, 30, 8, 2)]], # making newest to test which one is kept
+        columns = data_tools._get_following_cols())
+    
+    copy_file_from_testing_resources_to_tmp_dir("following_07.xlsx", create_working_dir_with_data_dir, "following.xlsx")
+
+    data_tools.following_users_df_to_excel(df)
+
+    # Check that correct duplicates removed, and new data is still added
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_08.xlsx", cols_to_ignore = ["followed_before"])

@@ -133,7 +133,16 @@ def combine_dataframes(df1, df2):
     # remap them using df1 cols
     if set(df1.columns).issubset(set(df2.columns)):
         remapped_df2 = df2.loc[:, df1.columns]
-        final_df = pd.concat([df1, remapped_df2], axis = 0)
+
+
+        # To avoid concatenating empty dfs, if we know
+        # the cols are present, we can return the non-empty df
+        if df1.shape[0] == 0:
+            final_df = remapped_df2
+        elif remapped_df2.shape[0] == 0:
+            final_df = df1
+        else:
+            final_df = pd.concat([df1, remapped_df2], axis = 0)
 
     # If they have the same number of columns, force df2 to df1 cols
     elif df1.shape[1] == df2.shape[1]:
@@ -150,41 +159,141 @@ def combine_dataframes(df1, df2):
     return final_df
 
 
-
-def update_following_excel_file(driver = None, scraped_twitter_following = None):
+def users_list_to_following_df(users):
     '''
-    `scraped_twitter_users` can be provided (list of type User)
-
-    If it's not provided, a driver needs to be provided to scrape the current
-    Twitter users
+    Takes a list of Users and returns a dataframe 
+    with expected columns for later processing
     '''
-    if scraped_twitter_following is None:
-        scraped_twitter_following = scrape_follow_pages(driver)
+    df = pd.DataFrame(columns = _get_following_cols())
 
-    # Read previously scraped following from Excel file
-    df = pd.read_excel("following.xlsx", parse_dates=["followed_before"])
+    for user in users:
+        try:
+            row = pd.DataFrame([[user.handle, user.url, user.following_me, user.following_them, datetime.now()]], columns = _get_following_cols())
+
+            # Empty dataframes throw a warning, so if it's empty, don't concat, just make it the row 
+            if df.shape[0] == 0:
+                df = row
+            else:
+                df = combine_dataframes(df, row)
+        except:
+            pass
+
+    return df
+
+
+def following_users_df_to_excel(df):
+    '''
+    Takes in users df (with proper columns, suggested
+    to use `users_list_to_following_df` to generate)
+    and adds it to following.xlsx without duplicates
+    '''
+    # Read in existing data
+    following_file_path = os.path.join(_get_data_dir_name(), "following.xlsx")
+    existing_following_df = pd.read_excel(following_file_path, parse_dates=["followed_before"])
 
     # Need to set everyone in "currently_following" to False and will
     # update based on the ones that are actually being followed right now
     # since this will change run to run
-    df["currently_following"] = False
+    existing_following_df["currently_following"] = False
     
-    today = datetime.today()
+    # Combine the two dataframes
+    # important to keep existing_following_df FIRST
+    # since any issues will preserve that and discard the second df
+    final_df = combine_dataframes(existing_following_df, df)
 
-    for user in scraped_twitter_following:
-
-        if np.any(df["handle"] == user.handle):
-            # If user is already in the dataframe, update them
-            df.loc[df["handle"] == user.handle, "currently_following"] = True
-            df.loc[df["handle"] == user.handle, "following_me"] = user.following_me
-        else:
-            # User isn't in the dataframe, add them
-            tmp_row = pd.DataFrame([[user.handle, user.url, user.following_me, True, today]], columns=["handle", "url", "following_me", "currently_following", "followed_before"])
-
-            df = pd.concat([df, tmp_row], axis = 0)
-
-            # Need to reset the index each time since the queries 
-            # if they are already present could otherwise mess up
-            df.reset_index(drop=True, inplace=True)
+    # Edge case where something caused nothing in df to be added to 
+    # the existing df (ex - column mismatch). In this case, it's
+    # really an error, so we don't want to save anything and change
+    # currently following to false (since we don't *know* that).
+    # Since the unchanged file still exists, just return without 
+    # doing anything
+    try:
+        # Need to first check shape since future numpy
+        # release will deprecate checking *all* against
+        # an empty df
+        if final_df.shape[0] > 0:
+            if np.all(final_df == existing_following_df):
+                return
+    except:
+        pass
     
-    save_df_to_excel(df)
+
+    
+
+    # Dropping duplicates
+    # Since we want to keep the OLD dates if a user is already there
+    # (so repeated crawls don't constantly update an otherwise old 
+    # crawled user), but want to keep the NEW following data, have to 
+    # sort them by date and create different duplicate dropping rules
+
+    # Sorts new to old
+    final_df.sort_values(by = ["followed_before"], ascending = False, inplace=True)
+
+    # isolate duplicated rows
+    duplicate_rows_boolean = final_df.duplicated(subset = ["handle"], keep=False)
+    duplicate_rows = final_df[duplicate_rows_boolean]
+
+    # Keep the NEW rows from the duplicates (drop old / last rows)
+    duplicates_new_rows = duplicate_rows.drop_duplicates(subset = ["handle"], keep='first')
+
+    # Now drop the new duplicates (keep old rows) from the main dataframe and update the old rows with the new data we want to update (following_me / currently_following)
+    final_df.drop_duplicates(subset = ["handle"], keep='last', inplace=True)
+
+    for row in duplicates_new_rows.iterrows():
+        # Returns an (index, Series) tuple so grab the second entry
+        handle = row[1]["handle"]
+        final_df.loc[final_df["handle"] == handle, "following_me"] = row[1]["following_me"]
+        final_df.loc[final_df["handle"] == handle, "currently_following"] = row[1]["currently_following"]
+
+
+    save_df_to_excel(final_df, "following.xlsx")
+
+
+
+
+
+
+
+
+
+
+
+
+# # Old version that is no longer needed, replaced by `following_users_df_to_excel`
+# def update_following_excel_file(driver = None, scraped_twitter_following = None):
+#     '''
+#     `scraped_twitter_users` can be provided (list of type User)
+
+#     If it's not provided, a driver needs to be provided to scrape the current
+#     Twitter users
+#     '''
+#     if scraped_twitter_following is None:
+#         scraped_twitter_following = scrape_follow_pages(driver)
+
+#     # Read previously scraped following from Excel file
+#     df = pd.read_excel("following.xlsx", parse_dates=["followed_before"])
+
+#     # Need to set everyone in "currently_following" to False and will
+#     # update based on the ones that are actually being followed right now
+#     # since this will change run to run
+#     df["currently_following"] = False
+    
+#     today = datetime.today()
+
+#     for user in scraped_twitter_following:
+
+#         if np.any(df["handle"] == user.handle):
+#             # If user is already in the dataframe, update them
+#             df.loc[df["handle"] == user.handle, "currently_following"] = True
+#             df.loc[df["handle"] == user.handle, "following_me"] = user.following_me
+#         else:
+#             # User isn't in the dataframe, add them
+#             tmp_row = pd.DataFrame([[user.handle, user.url, user.following_me, True, today]], columns=["handle", "url", "following_me", "currently_following", "followed_before"])
+
+#             df = pd.concat([df, tmp_row], axis = 0)
+
+#             # Need to reset the index each time since the queries 
+#             # if they are already present could otherwise mess up
+#             df.reset_index(drop=True, inplace=True)
+    
+#     save_df_to_excel(df)

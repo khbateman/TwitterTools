@@ -1,4 +1,3 @@
-from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
@@ -19,28 +18,6 @@ import random
 from .User import User
 from .user_management import *
 
-
-
-def create_driver_2():
-    # Launch driver and open webpage
-    options = webdriver.safari.options.Options()
-    driver = webdriver.Safari(options=options)
-    driver.implicitly_wait(5) # wait for 5 seconds to find objects that may take time to load before throwing exception
-
-    # Make window big enough to see
-    driver.set_window_size(1600,1000)
-
-    return driver
-
-
-def log_in_twitter(driver, username, password, sleep_time = 2):
-    driver.get("https://twitter.com/login")
-    time.sleep(sleep_time)
-    driver.find_element(By.TAG_NAME, "input").send_keys(f"{username}\n")
-    # driver.find_element(By.TAG_NAME, "input").send_keys("\n")
-    time.sleep(sleep_time)
-    driver.find_element(By.TAG_NAME, "input").send_keys(f"{password}\n")
-    time.sleep(1)
 
 
 def get_all_user_divs(driver):
