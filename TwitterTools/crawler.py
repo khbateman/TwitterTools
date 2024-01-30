@@ -39,7 +39,6 @@ def get_all_user_divs(driver):
 
 
 
-
 def create_user_from_div_v1(div):
     '''
     The functionality of this is identical to the below `create_user_from_div` however
@@ -187,7 +186,7 @@ def create_user_from_div(div):
 
 
 
-def scrape_single_follow_page(driver, url):
+def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_after_scrolling = 2.0):
     '''
     This function scrapes followers off of a single follower/following page 
     (and other similarly formatted pages)
@@ -203,7 +202,7 @@ def scrape_single_follow_page(driver, url):
 
     # Navigate to following page and wait for it to load
     driver.get(url)
-    time.sleep(1.0)
+    time.sleep(sleep_after_loading)
 
     users_added = True
     next_scroll_y = 0
@@ -216,7 +215,7 @@ def scrape_single_follow_page(driver, url):
         driver.execute_script(f"window.scrollTo(0, {next_scroll_y})")
 
         # Need to briefly wait after scrolling to let new users load
-        time.sleep(2.0)
+        time.sleep(sleep_after_scrolling)
         
         all_divs = get_all_user_divs(driver)
         
@@ -285,12 +284,12 @@ def scrape_follow_pages(driver, twitter_handle, following = True, verified_follo
 
 
 
-def get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_checking_after_days_threshold_met = 7):
+def get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_checking_after_days_threshold_met = 7, sleep_after_loading = 2):
     # Checks the most recent date of post or post liked. Start with big number
     time_since_most_recent_activity = timedelta(days=9999)
 
     driver.get(url)
-    time.sleep(2)
+    time.sleep(sleep_after_loading)
 
     # Get the div that holds user Tweets
     # In rare cases where this user no longer exists, this element can't be found
@@ -322,7 +321,8 @@ def get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_che
     return time_since_most_recent_activity
 
 
-def get_time_lapsed_since_most_recent_activity_multi_page(driver, urls, stop_checking_after_days_threshold_met = 7):
+
+def get_time_lapsed_since_most_recent_activity_multi_page(driver, urls, stop_checking_after_days_threshold_met = 7, sleep_after_loading = 2):
     # Checks the most recent date of post or post liked 
     time_since_most_recent_activity = timedelta(days=9999)
 
@@ -330,7 +330,7 @@ def get_time_lapsed_since_most_recent_activity_multi_page(driver, urls, stop_che
         if time_since_most_recent_activity.days < stop_checking_after_days_threshold_met:
             break
         else:
-            page_most_recent_activity = get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_checking_after_days_threshold_met = stop_checking_after_days_threshold_met)
+            page_most_recent_activity = get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_checking_after_days_threshold_met = stop_checking_after_days_threshold_met, sleep_after_loading = sleep_after_loading)
 
             if page_most_recent_activity < time_since_most_recent_activity:
                 time_since_most_recent_activity = page_most_recent_activity
