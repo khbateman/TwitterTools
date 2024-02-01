@@ -233,8 +233,6 @@ def users_list_to_accounts_to_follow_df(users, source, ready_to_follow = False):
         except:
             pass
     
-    print(df)
-
     return df
 
 
