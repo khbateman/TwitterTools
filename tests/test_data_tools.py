@@ -35,6 +35,12 @@ def lists_match(list1, list2):
 
 
 def compare_tmp_file_with_test_file(tmp_dir, tmp_file_name, testing_file_name, cols_to_ignore = []):
+    '''
+    Reads in the file located at ./{`tmp_dir`}/{`tmp_file_name`}
+    and compares it to the file at tests/Testing_Resources/{`testing_file_name`}
+
+    If certain columns will create comparison issues (ex - datetime values), those can be ignored by passing the column names into `cols_to_ignore`
+    '''
     current_dir = os.path.dirname(__file__)
     testing_file_path = os.path.join(current_dir, "Testing_Resources", testing_file_name)
     tmp_file_path = os.path.join(tmp_dir, data_tools._get_data_dir_name(),tmp_file_name)
@@ -731,3 +737,157 @@ def test_users_list_to_accounts_to_follow_df_03():
 
 
 
+def test_accounts_to_follow_df_to_excel_01(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, True, "this is a source"],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", False, False, "this is a source"],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, True, "this is a source"],
+        ["UNC_athletics_followed", "https://twitter.com/UNC_athletics", True, True, "this is a source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+    # Basic test where existing file is empty and the new rows are added
+    # Note the followed row will NOT be added
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_01.xlsx")
+
+
+def test_accounts_to_follow_df_to_excel_02(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    df = pd.DataFrame(columns = data_tools._get_accounts_to_follow_cols())
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+    # Existing file has data, but new df is empty. Should match original file
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_01.xlsx")
+
+
+def test_accounts_to_follow_df_to_excel_03(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    df = pd.DataFrame([
+        ["some_acct1", "https://twitter.com/some_acct1", False, True, "this is a source", 0],
+        ["some_acct2", "https://twitter.com/some_acct2", False, True, "this is a source", 0],
+        ["some_acct3", "https://twitter.com/some_acct3", True, True, "this is a source", 0]], # won't be added because already followed
+        columns = data_tools._get_accounts_to_follow_cols() + ["extra_col"])
+
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+    # Basic test where existing file has rows already
+    # and new dataframe has incorrect columns. 
+    # However, it has the base columns, just an extra one
+    # Extra col will be ignored and others will be used to add data
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_04.xlsx")
+
+
+def test_accounts_to_follow_df_to_excel_04(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    df = pd.DataFrame([
+        ["some_acct1", "https://twitter.com/some_acct1", False, True],
+        ["some_acct2", "https://twitter.com/some_acct2", False, True],
+        ["some_acct3", "https://twitter.com/some_acct3", True, True]],
+        columns = ["handle", "url", "followed", "ready_to_follow"])
+    
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+    # Similar example to above, but one less col rather than extra 
+    # Basic test where existing file has rows already
+    # and new dataframe has incorrect columns. So nothing is added.
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_01.xlsx")
+
+
+
+def test_accounts_to_follow_df_to_excel_05(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    df = pd.DataFrame([
+        ["some_acct1", "https://twitter.com/some_acct1", False, True, "abc source"],
+        ["some_acct2", "https://twitter.com/some_acct2", True, True, "abc source"],
+        ["some_acct3", "https://twitter.com/some_acct3", False, False, "abc source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+    
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+    # Basic test where existing file has rows already
+    # and new dataframe is added successfully
+    # Note row 2 WON'T be added because it's already followed
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_02.xlsx")
+
+
+def test_accounts_to_follow_df_to_excel_06(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    df = pd.DataFrame([
+        ["some_acct1", "https://twitter.com/some_acct1", False, True, "abc source"],
+
+        # Duplicate
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, "this is a DIFFERENT source"],
+
+        # Won't be added because already followed
+        ["some_acct2", "https://twitter.com/some_acct2", True, True, "abc source"],
+
+        # Duplicate
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, False, "this is a DIFFERENT source"],
+
+        ["some_acct3", "https://twitter.com/some_acct3", False, False, "abc source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+    
+
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+
+    # Basic test where existing file has rows already
+    # and new dataframe is added successfully
+    # THERE ARE DUPLICATES THAT SHOULD BE REMOVED
+    # Note some_acct2 WON'T be added because it's already followed
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_02.xlsx")
+
+
+def test_accounts_to_follow_df_to_excel_07(create_working_dir_with_data_dir):
+    data_tools.setup_data_files()
+
+    # Example where now John Smith is FOLLOWED to start, will be dropped
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01b.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    df = pd.DataFrame([
+        ["some_acct1", "https://twitter.com/some_acct1", False, True, "abc source"],
+
+        # Duplicate, but he's now not followed in the one being added
+        # Still should not be added (logically this makes sense because
+        # if someone were already followed in the saved data, we're not
+        # going to follow them again even if they're not followed now. 
+        # They'd be filtered out anyways by their handle being in prev.
+        # followed accounts)
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, "this is a DIFFERENT source"],
+
+        # Won't be added because already followed
+        ["some_acct2", "https://twitter.com/some_acct2", True, True, "abc source"],
+
+        # Duplicate
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", False, False, "this is a DIFFERENT source"],
+
+        ["some_acct3", "https://twitter.com/some_acct3", False, False, "abc source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+    
+
+    data_tools.accounts_to_follow_df_to_excel(df)
+
+
+    # Basic test where existing file has rows already
+    # and new dataframe is added successfully
+    # THERE ARE DUPLICATES THAT SHOULD BE REMOVED
+    # Note some_acct2 WON'T be added because it's already followed
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_03.xlsx")

@@ -34,7 +34,17 @@ def display_unfollow_count(handles_to_skip = [], unfollow_after_days = 7):
     print("Ready to unfollow:", df.shape[0])
 
 
-def update_excel_file_with_accounts_to_follow(driver, users_to_scrape = [], accounts_to_skip = [], search_queries = [], num_search_query_accounts = 100, terminate_each_search_query_scrape_after_seconds = 120, post_urls = [], scrape_post_quotes = True, scrape_post_reposts = True, scrape_post_likes = True):
+def update_excel_file_with_accounts_to_follow(
+        driver, 
+        users_to_scrape = [], 
+        accounts_to_skip = [], 
+        search_queries = [], 
+        num_search_query_accounts = 100, 
+        terminate_each_search_query_scrape_after_seconds = 120, 
+        post_urls = [], 
+        scrape_post_quotes = True, 
+        scrape_post_reposts = True, 
+        scrape_post_likes = True):
     # start with existing lists
     # Make everyone we add "followed" = False, which will be changed
     # as we actually open the tabs to follow them so we don't have to recrawl this
@@ -68,7 +78,6 @@ def update_excel_file_with_accounts_to_follow(driver, users_to_scrape = [], acco
                                             followers = True)
 
             for follower in followers:
-                # print(f"{follower.handle}\t{follower.following_me}\t{follower.following_them}\t{follower.handle in already_followed}")
                 # If the user doesn't follow me, I don't follow them, and I've never followed them before, they're a candidate to follow
                 if not follower.following_me and not follower.following_them and follower.handle not in already_followed and not follower.protected_account and follower.handle not in accounts_to_skip:
                     # Since we haven't followed this account yet, it will be False

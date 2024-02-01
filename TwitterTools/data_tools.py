@@ -304,6 +304,30 @@ def following_users_df_to_excel(df):
 
 
 
+def accounts_to_follow_df_to_excel(df):
+    '''
+    Takes in df (with proper columns, suggested
+    to use `users_list_to_accounts_to_follow_df` to generate)
+    and adds it to accounts_to_follow.xlsx without duplicates
+    '''
+    # Read in existing data
+    existing_following_df = get_accounts_to_follow_df()
+
+    # Combine dataframes
+    # important to keep existing_following_df FIRST
+    # since any issues will preserve that and discard the second df
+    final_df = combine_dataframes(existing_following_df, df)
+
+    # Drop duplicates
+    final_df.drop_duplicates(subset = ["handle"], keep='first', inplace=True)
+
+    # Remove all users that have already been followed (they've been 
+    # evaluated or followed, so they'll show up in one of the other 
+    # data stores (ex - following / accounts to skip))
+    final_df = final_df[final_df["followed"] == False]
+
+    save_df_to_excel(final_df, "accounts_to_follow.xlsx")
+
 
 
 
