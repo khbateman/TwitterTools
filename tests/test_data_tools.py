@@ -7,27 +7,6 @@ import shutil
 from datetime import datetime
 import numpy as np
 
-@pytest.fixture(scope="function")
-def create_working_dir(tmpdir_factory):
-    # Create the directory
-    my_tmpdir = tmpdir_factory.mktemp("tmp_directory")
-
-    # Navigate to it to run from within that directory
-    os.chdir(my_tmpdir)
-    yield my_tmpdir 
-
-@pytest.fixture(scope="function")
-def create_working_dir_with_data_dir(tmpdir_factory):
-    # Create the directory
-    my_tmpdir = tmpdir_factory.mktemp("tmp_directory")
-
-    # Navigate to it to run from within that directory
-    os.chdir(my_tmpdir)
-
-    os.mkdir(data_tools._get_data_dir_name())
-
-    yield my_tmpdir
-
 
 def copy_file_from_testing_resources_to_tmp_dir(file_name, tmp_dir_path, new_file_name):
     current_dir = os.path.dirname(__file__)
@@ -39,6 +18,7 @@ def copy_file_from_testing_resources_to_tmp_dir(file_name, tmp_dir_path, new_fil
     # Rename that copied file
     os.rename(os.path.join(tmp_dir_path, data_tools._get_data_dir_name(), file_name),
               os.path.join(tmp_dir_path, data_tools._get_data_dir_name(), new_file_name))
+
 
 
 def lists_match(list1, list2):
@@ -697,3 +677,57 @@ def test_following_users_df_to_excel_05(create_working_dir_with_data_dir):
 
     # Check that correct duplicates removed, and new data is still added
     assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "following.xlsx", "following_08.xlsx", cols_to_ignore = ["followed_before"])
+
+
+def test_users_list_to_accounts_to_follow_df_01():
+    user_1 = User.User("johnsmith")
+    user_2 = User.User("jessicaDavis", following_me=True, verified=True)
+    user_3 = User.User("UNC_athletics", following_them=True, protected_account=True)
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, "this is a source"],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", False, False, "this is a source"],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", True, False, "this is a source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+    
+    output_df = data_tools.users_list_to_accounts_to_follow_df([user_1, user_2, user_3], source = "this is a source", ready_to_follow=False)
+
+    assert np.all(df == output_df)
+
+
+
+def test_users_list_to_accounts_to_follow_df_02():
+    user_1 = User.User("johnsmith")
+    user_2 = User.User("jessicaDavis", following_me=True, verified=True)
+    user_3 = User.User("UNC_athletics", following_them=True, protected_account=True)
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, False, "this is a source"],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", False, False, "this is a source"],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", True, False, "this is a source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+    
+    # Same as above test, but throw in non-User elements to make sure it doesn't fail
+    output_df = data_tools.users_list_to_accounts_to_follow_df([user_1, 1, user_2, 2, 3, user_3, 4], source = "this is a source", ready_to_follow=False)
+
+    assert np.all(df == output_df)
+
+
+def test_users_list_to_accounts_to_follow_df_03():
+    user_1 = User.User("johnsmith")
+    user_2 = User.User("jessicaDavis", following_me=True, verified=True)
+    user_3 = User.User("UNC_athletics", following_them=True, protected_account=True)
+
+    df = pd.DataFrame([
+        ["johnsmith", "https://twitter.com/johnsmith", False, True, "this is a source"],
+        ["jessicaDavis", "https://twitter.com/jessicaDavis", False, True, "this is a source"],
+        ["UNC_athletics", "https://twitter.com/UNC_athletics", True, True, "this is a source"]],
+        columns = data_tools._get_accounts_to_follow_cols())
+    
+    # Same as #1, but change ready_to_follow arg
+    output_df = data_tools.users_list_to_accounts_to_follow_df([user_1, user_2, user_3], source = "this is a source", ready_to_follow=True)
+
+    assert np.all(df == output_df)
+
+
+

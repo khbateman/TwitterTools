@@ -7,7 +7,15 @@ def create_driver():
     # Launch driver and open webpage
     options = webdriver.safari.options.Options()
     driver = webdriver.Safari(options=options)
-    driver.implicitly_wait(5) # wait for 5 seconds to find objects that may take time to load before throwing exception
+
+    # wait for 0.01 seconds to find objects that may take 
+    # time to load before throwing exception. By setting this
+    # essenetially at zero, other waits need to be built into
+    # pages that take time to load. But this allows certain functions
+    # to quickly "fail" and move on when certain elements aren't found
+    # rather than waiting for them to load, when the reality is it's
+    # never going to load.
+    driver.implicitly_wait(0.01) 
 
     # Make window big enough to see
     driver.set_window_size(1600,1000)

@@ -53,6 +53,35 @@ def rename_file_with_appended_num(file_name):
             new_file_name_num += 1
 
 
+def get_following_df():
+    '''
+    Returns dataframe of data from `following.xlsx`
+    '''
+    # Read in existing data
+    following_file_path = os.path.join(_get_data_dir_name(), "following.xlsx")
+
+    return pd.read_excel(following_file_path, parse_dates=["followed_before"])
+
+def get_accounts_to_follow_df():
+    '''
+    Returns dataframe of data from `accounts_to_follow.xlsx`
+    '''
+    # Read in existing data
+    following_file_path = os.path.join(_get_data_dir_name(), "accounts_to_follow.xlsx")
+
+    return pd.read_excel(following_file_path,)
+
+def get_accounts_to_skip_df():
+    '''
+    Returns dataframe of data from `accounts_to_skip.xlsx`
+    '''
+    # Read in existing data
+    following_file_path = os.path.join(_get_data_dir_name(), "accounts_to_skip.xlsx")
+
+    return pd.read_excel(following_file_path)
+
+
+
 def validate_or_create_file(file_name, cols):
     '''
     Checks that the file exists and has only the columns specified
@@ -181,6 +210,34 @@ def users_list_to_following_df(users):
     return df
 
 
+def users_list_to_accounts_to_follow_df(users, source, ready_to_follow = False):
+    '''
+    Takes a list of Users and returns a dataframe 
+    with expected columns for later processing
+
+    `source` - a string representing where the users came from (ex - "Liked post {url}")
+
+    `ready_to_follow` - some users are scraped from places that inherently already make them ready to follow without further analysis. Others may need to be verified further to see if they're useful to follow (ex - they just follow a somewhat similar account)
+    '''
+    df = pd.DataFrame(columns = _get_accounts_to_follow_cols())
+
+    for user in users:
+        try:
+            row = pd.DataFrame([[user.handle, user.url, user.following_them, ready_to_follow, source]], columns = _get_accounts_to_follow_cols())
+
+            # Empty dataframes throw a warning, so if it's empty, don't concat, just make it the row 
+            if df.shape[0] == 0:
+                df = row
+            else:
+                df = combine_dataframes(df, row)
+        except:
+            pass
+    
+    print(df)
+
+    return df
+
+
 def following_users_df_to_excel(df):
     '''
     Takes in users df (with proper columns, suggested
@@ -188,8 +245,7 @@ def following_users_df_to_excel(df):
     and adds it to following.xlsx without duplicates
     '''
     # Read in existing data
-    following_file_path = os.path.join(_get_data_dir_name(), "following.xlsx")
-    existing_following_df = pd.read_excel(following_file_path, parse_dates=["followed_before"])
+    existing_following_df = get_following_df()
 
     # Need to set everyone in "currently_following" to False and will
     # update based on the ones that are actually being followed right now

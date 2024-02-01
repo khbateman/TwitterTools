@@ -17,13 +17,16 @@ import random
 # Other TwitterTools imports
 from .User import User
 from .user_management import *
+from .data_tools import *
 
 
 
-def get_all_user_divs(driver):
+def get_all_user_divs(driver, user_divs_xpath = """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[*]"""):
     '''
     Function takes in an argument of a `selenium` driver already on a page
     with a list of users (ex - following page)
+
+    The default argument is for following pages (ex - followers, following, likes of posts, etc.). Search results, although appearing the same, have a slightly different xpath and need a different argument
 
     Returns
     ----
@@ -32,11 +35,13 @@ def get_all_user_divs(driver):
     # Check in case there's no users available, break out
     try:
         # Using wildcard XPATH we can find the cells of the users
-        return driver.find_elements(By.XPATH, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[*]""")
+        return driver.find_elements(By.XPATH, user_divs_xpath)
     except:
         return []
 
 
+def get_all_user_divs_from_search(driver):
+    return get_all_user_divs(driver, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/section/div/div/div[*]""")
 
 
 def create_user_from_div_v1(div):
@@ -93,7 +98,7 @@ def create_user_from_div_v1(div):
 
 def create_user_from_div(div):
     '''
-    Takes in a div of a user from Twitter.
+    Takes in a selenium element that's a div of a user from Twitter.
 
     The div is typically the format where there's a user's profile pic, name, handle, bio, and a Follow / Following button on the right.
     
@@ -196,9 +201,9 @@ def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_afte
     `tuple` : (list of users (type: `User`), 
                list of strings of user urls)
     '''
-    # Since we already have wait times built in here, don't need additional waits
-    # that will redundantly slow this down
-    driver.implicitly_wait(0.01)
+    # # Since we already have wait times built in here, don't need additional waits
+    # # that will redundantly slow this down
+    # driver.implicitly_wait(0.01)
 
     # Navigate to following page and wait for it to load
     driver.get(url)
@@ -241,8 +246,8 @@ def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_afte
             except:
                 pass
 
-    # Change driver back to a 5 second wait
-    driver.implicitly_wait(5)
+    # # Change driver back to a 5 second wait
+    # driver.implicitly_wait(5)
 
     return users, user_urls
 
@@ -351,55 +356,59 @@ def get_time_lapsed_since_most_recent_activity(driver, base_profile_url, stop_ch
     return time_since_most_recent_activity
 
 
-def show_ready_to_unfollow_count():
-    pass
 
 
-def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tabs=5, only_show_unfollow_count = False): 
+def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tabs=(0, 5), handles_to_skip = [], unfollow_after_days = 7): 
     '''
-    only_show_unfollow_count is an argument that can be used to only display the printed line 
-    of how many accounts are ready to unfollow. Useful to check how many are ready before starting the script
+    `driver` - logged in driver
+
+    `number_to_unfollow` - how many tabs will be opened with accounts to unfollow at the end
+
+    `sleep_between_tabs` - tuple of low / high end of random sleep between opening new tabs
+
+    `handles_to_skip` - handles that shouldn't be unfollowed even if they meet unfollow criteria
+
+    `unfollow_after_days` - threshold that after a user has been followed for this many days, they're eligible to unfollow
     '''   
-    # Read in overall following list
-    df = pd.read_excel("following.xlsx", parse_dates=["followed_before"])
+    # # Read in overall following list
+    # df = get_following_df()
+    
 
     # Certain accounts I follow because they're relevant to Charlotte
     # These shouldn't be suggested to unfollow
-    accounts_to_skip = ["wsoctv", "axioscharlotte", "CLTMayor", "theobserver", "BofAstadium", "spectrumcenter", "unccharlotte", "KnightsBaseball", "hornets", "Panthers", "Charlottgotalot", "AllyCLTCenter", "CLTGuide", "wxbrad", "CharlotteFC", "WBTV_News", "CLTAirport", "Independence", "CharlotteFive", "shootbt", "BOAStadiumWx"]
-    df["skip"] = df["handle"].isin(accounts_to_skip)
+    # accounts_to_skip = ["wsoctv", "axioscharlotte", "CLTMayor", "theobserver", "BofAstadium", "spectrumcenter", "unccharlotte", "KnightsBaseball", "hornets", "Panthers", "Charlottgotalot", "AllyCLTCenter", "CLTGuide", "wxbrad", "CharlotteFC", "WBTV_News", "CLTAirport", "Independence", "CharlotteFive", "shootbt", "BOAStadiumWx"]
+    # df["skip"] = df["handle"].isin(accounts_to_skip)
 
 
-    # Calculated rows
-    df["time_following"] = datetime.today() - df["followed_before"]
+    # # Calculated rows
+    # df["time_following"] = datetime.today() - df["followed_before"]
     
     
-    unfollow_rows = df[(df["following_me"] == False) &
-                       (df["currently_following"] == True) & 
-                       (df["time_following"] > timedelta(days=7)) &
-                       (df["skip"] == False)]
+    # unfollow_rows = df[(df["following_me"] == False) &
+    #                    (df["currently_following"] == True) & 
+    #                    (df["time_following"] > timedelta(days=7)) &
+    #                    (df["skip"] == False)]
 
-    print("Ready to unfollow:", unfollow_rows.shape[0])
 
-    if only_show_unfollow_count:
-        return
-    
+    unfollow_df = get_df_of_user_to_unfollow(handles_to_skip, unfollow_after_days)
+
     opened_tabs = 1
 
-    # Sort from the oldest to newest follow
-    unfollow_rows = unfollow_rows.sort_values(by=['followed_before'])
+    # # Sort from the oldest to newest follow
+    # unfollow_rows = unfollow_rows.sort_values(by=['followed_before'])
 
     # Can uncomment this to check before processing
     # for row_tuple in unfollow_rows.iterrows():
     #     print(row_tuple[1])
     # return
 
-    for row_tuple in unfollow_rows.iterrows():
-        time.sleep(random.randint(0, sleep_between_tabs))
+    for row_tuple in unfollow_df.iterrows():
+        time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
 
         row = row_tuple[1]
 
         # Go to  profile page and get the date of their latest tweet / reply / like
-        days_since_last_activity = get_time_lapsed_since_most_recent_activity(driver, row["url"])
+        days_since_last_activity = get_time_lapsed_since_most_recent_activity(driver, row["url"], stop_checking_after_days_threshold_met = unfollow_after_days)
         
         # Want to unfollow if they've done something on Twitter since I've followed them
         if days_since_last_activity < row["time_following"] or days_since_last_activity.days > 30:
@@ -427,8 +436,23 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
 def create_search_url(query):
     url = "https://twitter.com/search?q="
 
-    query = query.replace(",", "%2C")
+    query = query.replace("%", "%25")
     query = query.replace(" ", "%20")
+    query = query.replace('"', "%22")
+    query = query.replace("#", "%23")
+    query = query.replace("$", "%24")
+    query = query.replace("&", "%26")
+    query = query.replace("'", "%27")
+    query = query.replace("+", "%2B")
+    query = query.replace(",", "%2C")
+    query = query.replace("/", "%2F")
+    query = query.replace(":", "%3A")
+    query = query.replace(";", "%3B")
+    query = query.replace("=", "%3D")
+    query = query.replace("?", "%3F")
+    query = query.replace("@", "%40")
+    query = query.replace("[", "%5B")
+    query = query.replace("]", "%5D")
 
     url += query
     url += "&src=typed_query&f=user"
@@ -439,8 +463,8 @@ def create_search_url(query):
 
 def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], terminate_after_seconds = 120, already_followed_handles = []):
     # Since we already have wait times built in here, don't need additional waits
-    # that will redundantly slow this down
-    driver.implicitly_wait(0.01)
+    # # that will redundantly slow this down
+    # driver.implicitly_wait(0.01)
 
     driver.get(create_search_url(query))
     time.sleep(1.0)
@@ -466,7 +490,8 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
         time.sleep(2.0)
 
         # Get all the divs for each user (wildcard path)
-        all_user_divs = driver.find_elements(By.XPATH, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/section/div/div/div[*]""")
+        all_user_divs = get_all_user_divs_from_search(driver)
+
 
         # Before starting the loop, check if nothing has changed
         # (i.e. - final user in list is different)
@@ -485,46 +510,47 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
 
         # Go from the last div at the bottom towards the top
         for div in all_user_divs[::-1]:
+            # try:
+            #     profile_url = div.find_element(By.CSS_SELECTOR, "a").get_attribute(name="href")
+
+            #     if profile_url in tmp_user_urls:
+            #         # Once we hit a URL we've seen before, we
+            #         # can scroll again since we're working bottom-up
+            #         break
+            #     else:
+            #         following_me = False
+            #         following_them = False
+            #         protected_account = False
+
+            #         # Get all the spans in this div to see if there's the "Follows you" block or if follow button text shows following them
+            #         for span in div.find_elements(By.TAG_NAME, "span"):
+            #             if span.text == "Follows you":
+            #                 following_me = True
+            #             elif span.text == "Follow":
+            #                 following_them = False
+            #             elif span.text == "Following":
+            #                 following_them = True
+
+            #         # Check the SVGs to see if the protected account is there
+            #         # Need to put it in another try block so it doesn't blow
+            #         # up and error out every non-svg cell
+            #         try:
+            #             for svg in div.find_elements(By.TAG_NAME, "svg"):
+            #                 if svg.get_attribute("aria-label") == "Protected account":
+            #                     protected_account = True
+            #         except:
+            #             # print("svg blew it up")
+            #             pass
             try:
-                profile_url = div.find_element(By.CSS_SELECTOR, "a").get_attribute(name="href")
-
-                if profile_url in tmp_user_urls:
-                    # Once we hit a URL we've seen before, we
-                    # can scroll again since we're working bottom-up
-                    break
-                else:
-                    following_me = False
-                    following_them = False
-                    protected_account = False
-
-                    # Get all the spans in this div to see if there's the "Follows you" block or if follow button text shows following them
-                    for span in div.find_elements(By.TAG_NAME, "span"):
-                        if span.text == "Follows you":
-                            following_me = True
-                        elif span.text == "Follow":
-                            following_them = False
-                        elif span.text == "Following":
-                            following_them = True
-
-                    # Check the SVGs to see if the protected account is there
-                    # Need to put it in another try block so it doesn't blow
-                    # up and error out every non-svg cell
-                    try:
-                        for svg in div.find_elements(By.TAG_NAME, "svg"):
-                            if svg.get_attribute("aria-label") == "Protected account":
-                                protected_account = True
-                    except:
-                        # print("svg blew it up")
-                        pass
 
 
-                    user = User.from_url(profile_url, following_me=following_me, following_them=following_them, protected_account=protected_account)
+                user = create_user_from_div(div)
 
-                    # Helpful check so doesn't max out list with 
-                    # previously followed accounts
-                    if is_account_to_follow(user, already_followed_handles, accounts_to_skip):
-                        tmp_users.append(user)
-                        tmp_user_urls.append(profile_url)
+                # Helpful check so doesn't max out list with 
+                # previously followed accounts
+                if is_account_to_follow(user, already_followed_handles, accounts_to_skip):
+                    tmp_users.append(user)
+                    tmp_user_urls.append(user.url)
 
             except:
                 pass
@@ -534,11 +560,11 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
     
     print(f"Finished search crawl after {seconds_elapsed} secs and finding {len(tmp_users)} new users")
 
-    for user in tmp_users:
-        print(user.handle)
+    # for user in tmp_users:
+    #     print(user.handle)
     
     # Set driver wait times back
-    driver.implicitly_wait(5)
+    # driver.implicitly_wait(5)
     return tmp_users
 
 

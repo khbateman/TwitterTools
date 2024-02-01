@@ -2,6 +2,7 @@
 from .driver_tools import *
 from .crawler import *
 from .data_tools import *
+from .user_management import *
 
 
 def create_driver_and_login(username, password, sleep_time = 3):
@@ -23,3 +24,8 @@ def update_my_following_data(driver, handle):
     df = users_list_to_following_df(users)
     following_users_df_to_excel(df)
 
+
+def display_unfollow_count(handles_to_skip = [], unfollow_after_days = 7):
+    df = get_df_of_user_to_unfollow(handles_to_skip, unfollow_after_days)
+
+    print("Ready to unfollow:", df.shape[0])

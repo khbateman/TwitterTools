@@ -338,6 +338,56 @@ class TestCrawlerSingleUsers():
                                 verified=True)
         
         assert user == expected
+    
+
+    def test_user_crawler_16(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_from_search_01.html")    
+
+        get_driver.get("file://" + file_path)
+        div = get_driver.find_element(By.XPATH, "/html/body/div")
+        
+        user = crawler.create_user_from_div(div)
+        expected = User.User(handle = "Charlottegshore",
+                                following_me = False,
+                                following_them = False,
+                                protected_account = False,
+                                verified=True)
+        
+        assert user == expected
+    
+    def test_user_crawler_17(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_from_search_02.html")    
+
+        get_driver.get("file://" + file_path)
+        div = get_driver.find_element(By.XPATH, "/html/body/div")
+        
+        user = crawler.create_user_from_div(div)
+        expected = User.User(handle = "theobserver",
+                                following_me = False,
+                                following_them = True,
+                                protected_account = False,
+                                verified=False)
+        
+        assert user == expected
+    
+    def test_user_crawler_18(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_from_search_03.html")    
+
+        get_driver.get("file://" + file_path)
+        div = get_driver.find_element(By.XPATH, "/html/body/div")
+        
+        user = crawler.create_user_from_div(div)
+        expected = User.User(handle = "kevinspellman",
+                                following_me = True,
+                                following_them = True,
+                                protected_account = False,
+                                verified=False)
+        
+        assert user == expected
+
 
 
 class TestCrawlerUserPage():
@@ -424,8 +474,39 @@ class TestCrawlerUserPage():
 
         assert len(users) == 32
         assert len(urls) == 32
+    
+
+    def test_get_all_user_divs_search_page_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/search_results_01.html")
+
+        get_driver.get("file://" + file_path)
+
+        all_user_divs = crawler.get_all_user_divs_from_search(get_driver)
+
+        assert len(all_user_divs) == 17
 
 
+    def test_get_all_user_divs_search_page_02(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/search_results_01_scrolled.html")
+
+        get_driver.get("file://" + file_path)
+
+        all_user_divs = crawler.get_all_user_divs_from_search(get_driver)
+
+        assert len(all_user_divs) == 28
+
+
+    def test_get_all_user_divs_search_page_03(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/search_results_02_empty.html")
+
+        get_driver.get("file://" + file_path)
+
+        all_user_divs = crawler.get_all_user_divs_from_search(get_driver)
+
+        assert len(all_user_divs) == 0
 
 
 
@@ -827,3 +908,18 @@ class TestTimeSinceRecentActivityMultiPage():
         
         # Check the efficiency exit from the first ordering is quicker
         assert simulation_time_1 < simulation_time_2
+
+
+
+def test_create_search_url_01():
+    assert crawler.create_search_url("unc '24") == "https://twitter.com/search?q=unc%20%2724&src=typed_query&f=user"
+
+
+def test_create_search_url_02():
+    assert crawler.create_search_url("charlotte, nc") == "https://twitter.com/search?q=charlotte%2C%20nc&src=typed_query&f=user"
+
+def test_create_search_url_03():
+    assert crawler.create_search_url('''charlotte !"#$%&'()*+,/:;=?@[]''') == "https://twitter.com/search?q=charlotte%20!%22%23%24%25%26%27()*%2B%2C%2F%3A%3B%3D%3F%40%5B%5D&src=typed_query&f=user"
+
+
+    
