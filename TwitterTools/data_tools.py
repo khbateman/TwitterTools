@@ -104,14 +104,33 @@ def validate_or_create_file(file_name, cols):
 
         # Check if all the columns needed are present
         if set(cols).issubset(set(df.columns)):
-            # all columns are here, re-arrange them and save
-            rearranged_df = df[cols]
-            rearranged_df.to_excel(os.path.join(_get_data_dir_name(), file_name), index=False)
+
+            file_is_valid = True
+ 
+            # If the reverse is true, the columns match
+            try:
+                if set(df.columns).issubset(set(cols)):
+                    # Make sure they align perfectly
+                    for i in range(len(cols)):
+                        if df.columns[i] != cols[i]:
+                            file_is_valid = False
+                else:
+                    file_is_valid = False
+            except:
+                file_is_valid = False
+
+            # By checking above, we can avoid resaving every time if something matches perfectly
+            if not file_is_valid:
+                # all columns are here, but something is off numbers wise, re-arrange them and save
+                rearranged_df = df[cols]
+                rearranged_df.to_excel(os.path.join(_get_data_dir_name(), file_name), index=False)
+
         else:
             # something is missing. Rename orig, and create empty
             rename_file_with_appended_num(file_name)
             create_empty_df(file_name, cols)
 
+            
 
 
 def setup_data_files():

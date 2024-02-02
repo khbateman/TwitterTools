@@ -241,6 +241,8 @@ def test_validate_or_create_file_02(create_working_dir_with_data_dir):
     
     # Should be fixed now
     df = pd.read_excel(os.path.join(create_working_dir_with_data_dir, data_tools._get_data_dir_name(), "following.xlsx"))
+
+    print(df.columns)
     assert lists_match(df.columns, data_tools._get_following_cols())
 
     # Data shouldn't be lost since the original data should be preserved
