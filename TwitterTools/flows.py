@@ -129,7 +129,7 @@ def update_excel_file_with_accounts_to_follow(
                                                 already_followed_handles = handles_following)
             
             update_accounts_to_follow_excel_from_user_list(
-                users = followers,
+                users = new_accounts,
                 source = f"Search: {query}",
                 validate_users = False,
                 ready_to_follow = False,
