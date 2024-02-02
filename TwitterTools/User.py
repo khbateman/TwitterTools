@@ -18,7 +18,9 @@ class User:
             url = url[7:]
 
         # handle relative urls
-        if url[0] == "/":
+        if len(url) == 0:
+            handle = ""
+        elif url[0] == "/":
             handle = url.lstrip("/")
         else:
             # handle Twitter urls

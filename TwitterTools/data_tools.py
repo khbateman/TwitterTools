@@ -3,6 +3,8 @@ from datetime import datetime
 import numpy as np
 import os
 
+from .user_management import is_account_to_follow
+
 def _get_data_dir_name():
     return "TwitterTools_data"
 
@@ -71,14 +73,21 @@ def get_accounts_to_follow_df():
 
     return pd.read_excel(following_file_path,)
 
-def get_accounts_to_skip_df():
-    '''
-    Returns dataframe of data from `accounts_to_skip.xlsx`
-    '''
-    # Read in existing data
-    following_file_path = os.path.join(_get_data_dir_name(), "accounts_to_skip.xlsx")
 
-    return pd.read_excel(following_file_path)
+def get_handles_list(file_name):
+    '''
+    Returns list of handles from specified file (following.xlsx, accounts_to_skip.xlsx, accounts_to_follow.xlsx)
+    '''
+    try:
+        # Read in existing data
+        following_file_path = os.path.join(_get_data_dir_name(), file_name)
+
+        df = pd.read_excel(following_file_path)
+
+        return list(df["handle"])
+    except:
+        return []
+
 
 
 
@@ -330,9 +339,33 @@ def accounts_to_follow_df_to_excel(df):
 
 
 
+def update_accounts_to_follow_excel_from_user_list(users, source, ready_to_follow = False, validate_users = True, accounts_following = [], accounts_to_skip = []):
+    '''
+    Takes a list of Users and saves them to accounts_to_follow.xlsx without duplicates
 
+    `users` - list of `Users`
 
+    `source` - a string representing where the users came from (ex - "Liked post {url}")
 
+    `ready_to_follow` - some users are scraped from places that inherently already make them ready to follow without further analysis. Others may need to be verified further to see if they're useful to follow (ex - they just follow a somewhat similar account)
+
+    `validate_users` - some crawling methods validate the users internally, so we can save time by not re-validating in those cases
+    '''
+
+    if validate_users:
+        checked_users = []
+        for user in users:
+            # Verify it the account meets criteria for following
+            if is_account_to_follow(user, accounts_following, accounts_to_skip):
+                checked_users.append(user)
+    else:
+        checked_users = users
+
+    df = users_list_to_accounts_to_follow_df(checked_users, 
+                                            source = source,
+                                            ready_to_follow = ready_to_follow)
+            
+    accounts_to_follow_df_to_excel(df)
 
 
 

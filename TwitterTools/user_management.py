@@ -27,7 +27,7 @@ def is_account_to_follow(user, already_followed = [], accounts_to_skip = []):
     and not user.protected_account \
     and user.handle not in already_followed \
     and user.handle not in accounts_to_skip \
-    and user.url != "":
+    and user.handle != "":
         return True
     else:
         return False

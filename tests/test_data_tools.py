@@ -68,6 +68,11 @@ def compare_tmp_file_with_test_file(tmp_dir, tmp_file_name, testing_file_name, c
     tmp_df = tmp_df.loc[:, tmp_df_cols]
     test_df = test_df.loc[:, test_df_cols]
 
+    # It will read in blank cells as NaN so we need to convert those
+    # back to empty string
+    tmp_df.fillna("", inplace=True)
+    test_df.fillna("", inplace=True)
+
 
     try:
         if tmp_df.shape == test_df.shape:
@@ -78,7 +83,7 @@ def compare_tmp_file_with_test_file(tmp_dir, tmp_file_name, testing_file_name, c
                 for i in range(len(test_df.columns)):
                     if tmp_df.columns[i] != test_df.columns[i]:
                         cols_match = False
-                
+
                 if cols_match:
                     # if we get here, columns and shape match, so check data
                     if np.all(tmp_df.loc[:, tmp_df_cols] == test_df.loc[:, test_df_cols]):
@@ -891,3 +896,100 @@ def test_accounts_to_follow_df_to_excel_07(create_working_dir_with_data_dir):
     # THERE ARE DUPLICATES THAT SHOULD BE REMOVED
     # Note some_acct2 WON'T be added because it's already followed
     assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_03.xlsx")
+
+
+def test_get_handles_list_01(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_skip_01.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx")
+
+    accounts = data_tools.get_handles_list("accounts_to_skip.xlsx")
+
+    assert accounts == ["some_account_1", "abc", "another_account", "last_one"]
+
+
+def test_get_handles_list_02(create_working_dir_with_data_dir_and_files):
+    # Empty test
+    accounts = data_tools.get_handles_list("accounts_to_skip.xlsx")
+
+    assert accounts == []
+
+
+def test_get_handles_list_03(create_working_dir_with_data_dir):
+    # File isn't there, should be empty, not fail
+    accounts = data_tools.get_handles_list("accounts_to_skip.xlsx")
+
+    assert accounts == []
+
+def test_get_handles_list_04(create_working_dir_with_data_dir):
+    # File isn't there, should be empty, not fail
+    accounts = data_tools.get_handles_list("blah")
+
+    assert accounts == []
+
+
+def test_get_handles_list_05(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("following_01.xlsx", create_working_dir_with_data_dir_and_files, "following.xlsx")
+
+    accounts = data_tools.get_handles_list("following.xlsx")
+
+    assert accounts == ["Rackaveli919", "KaiGolfHQ", "oceanmicrobes", "ADW_4", "almightyy_zach"]
+
+def test_get_handles_list_06(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_01.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    accounts = data_tools.get_handles_list("accounts_to_follow.xlsx")
+
+    assert accounts == ["johnsmith", "jessicaDavis", "UNC_athletics"]
+
+
+
+def test_update_accounts_to_follow_excel_from_user_list_01(create_working_dir_with_data_dir):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_04.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    user_1 = User.User("account_1")
+    user_2 = User.User("account_2", following_me=True) # skipped
+    user_3 = User.User("account_3", following_them=True) #skipped
+    user_4 = User.User("account_4", protected_account=True) #skipped
+    user_5 = User.User("account_5") # in already followed
+    user_6 = User.User("account_6") # in accounts to skip
+    user_7 = User.User.from_url("") # url is blank
+    user_8 = User.User("account_8", verified=True)
+    user_9 = User.User("jessicaDavis") # already in file, will be skipped in excel saving
+
+    data_tools.update_accounts_to_follow_excel_from_user_list(
+        users = [user_1, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9], 
+        source = "source #2", 
+        ready_to_follow = False,
+        validate_users = True,
+        accounts_following = ["something", "something_else", "account_5", "another_account"],
+        accounts_to_skip = ["abc", "123", "account_6", "account_100"])
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_05.xlsx")
+
+
+def test_update_accounts_to_follow_excel_from_user_list_02(create_working_dir_with_data_dir):
+    # Same test as #1 but without validating users
+    # and changing ready to follow to true to make sure that's passed in
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_04.xlsx", create_working_dir_with_data_dir, "accounts_to_follow.xlsx")
+
+    user_1 = User.User("account_1")
+    user_2 = User.User("account_2", following_me=True) # skipped
+
+    # will still be dropped because following them is filtered
+    # out during saving
+    user_3 = User.User("account_3", following_them=True) 
+    user_4 = User.User("account_4", protected_account=True) #skipped
+    user_5 = User.User("account_5") # in already followed
+    user_6 = User.User("account_6") # in accounts to skip
+    user_7 = User.User.from_url("") # url is blank
+    user_8 = User.User("account_8", verified=True)
+    user_9 = User.User("jessicaDavis") # already in file, will be skipped in excel saving'
+
+    data_tools.update_accounts_to_follow_excel_from_user_list(
+        users = [user_1, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9], 
+        source = "source #2", 
+        ready_to_follow = True,
+        validate_users = False,
+        accounts_following = ["something", "something_else", "account_5", "another_account"],
+        accounts_to_skip = ["abc", "123", "account_6", "account_100"])
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_06.xlsx")
