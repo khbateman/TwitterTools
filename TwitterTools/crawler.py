@@ -572,7 +572,8 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
 def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = 0):
     '''`sleep_between_tabs` will generate a random number between 0 and that value to sleep'''
 
-    accounts_to_follow_df = pd.read_excel("accounts_to_follow.xlsx")
+    # accounts_to_follow_df = pd.read_excel("accounts_to_follow.xlsx")
+    accounts_to_follow_df = get_accounts_to_follow_df()
 
     unfollowed = accounts_to_follow_df[accounts_to_follow_df["followed"] == False]
     handles_to_follow = list(unfollowed.iloc[:num_to_follow, :]["handle"])
@@ -596,4 +597,6 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = 0):
         # (before we re-run account finding script)
         accounts_to_follow_df.loc[accounts_to_follow_df["handle"] == handle, "followed"] = True
     
+    # Using standard to_excel rather than this modules save method to avoid
+    # removing the accounts to follow rows in cases of error
     accounts_to_follow_df.to_excel("accounts_to_follow.xlsx", index=False)

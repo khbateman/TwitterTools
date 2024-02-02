@@ -4,7 +4,7 @@ import os
 from TwitterTools import data_tools, User
 import pandas as pd
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 
 
@@ -993,3 +993,87 @@ def test_update_accounts_to_follow_excel_from_user_list_02(create_working_dir_wi
         accounts_to_skip = ["abc", "123", "account_6", "account_100"])
 
     assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir, "accounts_to_follow.xlsx", "accounts_to_follow_06.xlsx")
+
+
+def test_get_urls_of_user_to_unfollow_01(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("following_09.xlsx",
+                        tmp_dir_path=create_working_dir_with_data_dir_and_files,
+                        new_file_name="following.xlsx")
+
+    # Need to change some rows of the file since the date needs to be relative
+    # to the test, not fixed
+    df = data_tools.get_following_df()
+    df.loc[df["handle"] == "KaiGolfHQ", "followed_before"] = datetime.now() - timedelta(days=2)
+    df.loc[df["handle"] == "oceanmicrobes", "followed_before"] = datetime.now() - timedelta(days=2)
+    df.loc[df["handle"] == "ADW_4", "followed_before"] = datetime.now() - timedelta(days=2)
+    df.loc[df["handle"] == "almightyy_zach", "followed_before"] = datetime.now() - timedelta(days=2)
+
+    # save this back to following before the function is called for the test
+    data_tools.save_df_to_excel(df, "following.xlsx")
+
+    unfollow_df = data_tools.get_df_of_user_to_unfollow()
+
+    expected = ["https://twitter.com/Rackaveli919", "https://twitter.com/kenanbateman"]
+
+    assert len(expected) == unfollow_df.shape[0]
+    assert set(unfollow_df["url"]).issubset(set(expected))
+
+
+def test_get_urls_of_user_to_unfollow_02(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("following_09.xlsx",
+                        tmp_dir_path=create_working_dir_with_data_dir_and_files,
+                        new_file_name="following.xlsx")
+
+    # Make everyone's date 2 days ago
+    df = data_tools.get_following_df()
+    df.loc[:, "followed_before"] = datetime.now() - timedelta(days=2)
+
+    # save this back to following before the function is called for the test
+    data_tools.save_df_to_excel(df, "following.xlsx")
+
+    unfollow_df = data_tools.get_df_of_user_to_unfollow()
+
+    assert unfollow_df.shape[0] == 0
+
+
+def test_get_urls_of_user_to_unfollow_03(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("following_09.xlsx",
+                        tmp_dir_path=create_working_dir_with_data_dir_and_files,
+                        new_file_name="following.xlsx")
+
+    # Make everyone following me
+    df = data_tools.get_following_df()
+    df.loc[:, "following_me"] = True
+
+    # save this back to following before the function is called for the test
+    data_tools.save_df_to_excel(df, "following.xlsx")
+
+    unfollow_df = data_tools.get_df_of_user_to_unfollow()
+
+    assert unfollow_df.shape[0] == 0
+
+
+def test_get_urls_of_user_to_unfollow_04(create_working_dir_with_data_dir_and_files):
+    # same as test 01, but this time the users are in the handles_to_skip arg
+    copy_file_from_testing_resources_to_tmp_dir("following_09.xlsx",
+                        tmp_dir_path=create_working_dir_with_data_dir_and_files,
+                        new_file_name="following.xlsx")
+
+    # Need to change some rows of the file since the date needs to be relative
+    # to the test, not fixed
+    df = data_tools.get_following_df()
+    df.loc[df["handle"] == "KaiGolfHQ", "followed_before"] = datetime.now() - timedelta(days=2)
+    df.loc[df["handle"] == "oceanmicrobes", "followed_before"] = datetime.now() - timedelta(days=2)
+    df.loc[df["handle"] == "ADW_4", "followed_before"] = datetime.now() - timedelta(days=2)
+    df.loc[df["handle"] == "almightyy_zach", "followed_before"] = datetime.now() - timedelta(days=2)
+
+    # save this back to following before the function is called for the test
+    data_tools.save_df_to_excel(df, "following.xlsx")
+
+
+    unfollow_df = data_tools.get_df_of_user_to_unfollow(handles_to_skip=["kenanbateman", "some_account_not_in_the_list", "KaiGolfHQ"])
+
+    expected = ["https://twitter.com/Rackaveli919"]
+
+    assert len(expected) == unfollow_df.shape[0]
+    assert set(unfollow_df["url"]).issubset(set(expected))

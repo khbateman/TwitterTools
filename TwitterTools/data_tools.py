@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 import os
 
@@ -366,6 +366,40 @@ def update_accounts_to_follow_excel_from_user_list(users, source, ready_to_follo
                                             ready_to_follow = ready_to_follow)
             
     accounts_to_follow_df_to_excel(df)
+
+
+def get_df_of_user_to_unfollow(handles_to_skip = [], unfollow_after_days = 7):
+    '''
+    Args
+    ----
+    `handles_to_skip` - list of twitter handles that should be skipped because they should be followed regardless of whather they meet unfollowing rules
+        format example - `["johnsmith", "hornets", ...]`
+
+    Returns
+    ----
+    Dataframe of the rows of users that are eligible to unfollow.
+
+    This dataframe has extra columns from processing in this function (skip, time_following)
+    '''
+    # Read in overall following list
+    df = get_following_df()
+
+    # add column for whether or not account is in the skip argument
+    df["skip"] = df["handle"].isin(handles_to_skip)
+
+    # Add calculated row
+    df["time_following"] = datetime.today() - df["followed_before"]
+
+    # Vectorized calculation for to filter which rows should be unfollowed
+    unfollow_rows = df[(df["following_me"] == False) &
+                       (df["currently_following"] == True) &
+                       (df["time_following"] > timedelta(days=unfollow_after_days)) &
+                       (df["skip"] == False)]
+
+    # Sort from the oldest to newest follow
+    unfollow_rows = unfollow_rows.sort_values(by=['followed_before'])
+
+    return unfollow_rows
 
 
 
