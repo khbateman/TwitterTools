@@ -1,5 +1,5 @@
 # TwitterTools imports
-from TwitterTools.data_tools import pd
+from TwitterTools.data_tools import get_df_of_user_to_unfollow, pd
 from TwitterTools.user_management import is_account_to_follow
 import pandas as pd
 from .driver_tools import *

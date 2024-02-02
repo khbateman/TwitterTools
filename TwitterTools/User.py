@@ -18,9 +18,12 @@ class User:
             url = url[7:]
 
         # handle relative urls
-        if len(url) == 0:
-            handle = ""
-        elif url[0] == "/":
+        # Note - empty urls will cause this to fail, which it SHOULD
+        # In other functions, creating users is wrapped in a try block
+        # Having this fail immediately rather than adding additional
+        # handle == "" checks is more efficient and also better indicates
+        # what is happening because an empty url **IS** a failure
+        if url[0] == "/":
             handle = url.lstrip("/")
         else:
             # handle Twitter urls

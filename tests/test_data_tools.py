@@ -951,12 +951,11 @@ def test_update_accounts_to_follow_excel_from_user_list_01(create_working_dir_wi
     user_4 = User.User("account_4", protected_account=True) #skipped
     user_5 = User.User("account_5") # in already followed
     user_6 = User.User("account_6") # in accounts to skip
-    user_7 = User.User.from_url("") # url is blank
     user_8 = User.User("account_8", verified=True)
     user_9 = User.User("jessicaDavis") # already in file, will be skipped in excel saving
 
     data_tools.update_accounts_to_follow_excel_from_user_list(
-        users = [user_1, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9], 
+        users = [user_1, user_2, user_3, user_4, user_5, user_6, user_8, user_9], 
         source = "source #2", 
         ready_to_follow = False,
         validate_users = True,
@@ -980,12 +979,11 @@ def test_update_accounts_to_follow_excel_from_user_list_02(create_working_dir_wi
     user_4 = User.User("account_4", protected_account=True) #skipped
     user_5 = User.User("account_5") # in already followed
     user_6 = User.User("account_6") # in accounts to skip
-    user_7 = User.User.from_url("") # url is blank
     user_8 = User.User("account_8", verified=True)
     user_9 = User.User("jessicaDavis") # already in file, will be skipped in excel saving'
 
     data_tools.update_accounts_to_follow_excel_from_user_list(
-        users = [user_1, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9], 
+        users = [user_1, user_2, user_3, user_4, user_5, user_6, user_8, user_9], 
         source = "source #2", 
         ready_to_follow = True,
         validate_users = False,

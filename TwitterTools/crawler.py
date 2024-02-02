@@ -14,6 +14,8 @@ import json
 import keyring
 import random
 
+from .data_tools import get_df_of_user_to_unfollow
+
 # Other TwitterTools imports
 from .User import User
 from .user_management import *
