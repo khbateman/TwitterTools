@@ -125,7 +125,8 @@ def update_excel_file_with_accounts_to_follow(
             new_accounts = crawl_users_from_search(driver,
                                                 query = query,
                                                 num_accounts = num_search_query_accounts,
-                                                accounts_to_skip = handles_to_skip, terminate_after_seconds = terminate_each_search_query_scrape_after_seconds,
+                                                accounts_to_skip = handles_to_skip, 
+                                                terminate_after_seconds = terminate_each_search_query_scrape_after_seconds,
                                                 already_followed_handles = handles_following)
             
             update_accounts_to_follow_excel_from_user_list(

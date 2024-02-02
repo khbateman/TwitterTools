@@ -548,11 +548,16 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
 
                 user = create_user_from_div(div)
 
-                # Helpful check so doesn't max out list with 
-                # previously followed accounts
-                if is_account_to_follow(user, already_followed_handles, accounts_to_skip):
-                    tmp_users.append(user)
-                    tmp_user_urls.append(user.url)
+                if user.url in tmp_user_urls:
+                    # Once we hit a URL we've seen before, we
+                    # can scroll again since we're working bottom-up
+                    break
+                else:
+                    # Helpful check so doesn't max out list with 
+                    # previously followed accounts
+                    if is_account_to_follow(user, already_followed_handles, accounts_to_skip):
+                        tmp_users.append(user)
+                        tmp_user_urls.append(user.url)
 
             except:
                 pass
