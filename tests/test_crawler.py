@@ -387,7 +387,41 @@ class TestCrawlerSingleUsers():
                                 verified=False)
         
         assert user == expected
+    
 
+    def test_user_crawler_19(self, get_driver):
+        # See if alternate XPATHs work for quote posts
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_from_post_quote_01.html")    
+
+        get_driver.get("file://" + file_path)
+        div = get_driver.find_element(By.XPATH, "/html/body/div")
+        
+        user = crawler.create_user_from_div(div, quote_post = True)
+        expected = User.User(handle = "MatiasDonovan",
+                                following_me = False,
+                                following_them = False,
+                                protected_account = False,
+                                verified=False)
+        
+        assert user == expected
+
+    def test_user_crawler_20(self, get_driver):
+        # See if alternate XPATHs work for quote posts (verified account)
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_from_post_quote_02_verified.html")    
+
+        get_driver.get("file://" + file_path)
+        div = get_driver.find_element(By.XPATH, "/html/body/div")
+        
+        user = crawler.create_user_from_div(div, quote_post = True)
+        expected = User.User(handle = "Sentdex",
+                                following_me = False,
+                                following_them = False,
+                                protected_account = False,
+                                verified=True)
+        
+        assert user == expected
 
 
 class TestCrawlerUserPage():

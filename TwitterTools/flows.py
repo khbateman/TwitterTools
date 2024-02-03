@@ -197,7 +197,7 @@ def update_excel_file_with_accounts_to_follow(
                 #         accounts_to_follow_df = pd.concat([accounts_to_follow_df, tmp_row], axis = 0)
 
             if scrape_post_reposts:
-                new_accounts, user_urls = scrape_single_follow_page(driver, direct_url = f"{cleaned_url}/retweets")
+                new_accounts, user_urls = scrape_single_follow_page(driver, f"{cleaned_url}/retweets")
 
                 update_accounts_to_follow_excel_from_user_list(
                     users = new_accounts,
@@ -214,7 +214,7 @@ def update_excel_file_with_accounts_to_follow(
                 #         accounts_to_follow_df = pd.concat([accounts_to_follow_df, tmp_row], axis = 0)
 
             if scrape_post_quotes:
-                new_accounts, user_urls = scrape_single_follow_page(driver, direct_url = f"{cleaned_url}/quotes")
+                new_accounts, user_urls = scrape_single_follow_page(driver, f"{cleaned_url}/quotes", quote_page=True)
 
                 update_accounts_to_follow_excel_from_user_list(
                     users = new_accounts,

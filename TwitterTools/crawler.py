@@ -98,13 +98,18 @@ def create_user_from_div_v1(div):
 
 
 
-def create_user_from_div(div):
+def create_user_from_div(div, quote_post = False):
     '''
     Takes in a selenium element that's a div of a user from Twitter.
 
     The div is typically the format where there's a user's profile pic, name, handle, bio, and a Follow / Following button on the right.
     
     The `div` argument should be the highest level div before the list-like structure that holds them. It should be in the format of a `selenium` element from querying using `find_elements()`
+
+    `quote_post` - for creating users from post engagements (quoted posts) rather than follower list divs. These change the xpaths.
+
+    Note - For quoted post users, it can't tell whether an account is followed, nor whether it's following me. So those values will always be false.
+
     '''
     profile_url = ""
     following_me = False
@@ -116,7 +121,10 @@ def create_user_from_div(div):
     # so each will have a . to start and have ONE LESS div to start (since 
     # we're relating to THAT div, it doesn't need to appear)
     try:
-        profile_url = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[1]/div/div[2]/div[1]/a''').get_attribute(name="href")
+        if quote_post:
+            profile_url = div.find_element(By.XPATH, '''.//div/div/article/div/div/div[2]/div[2]/div[1]/div/div[1]/div/div/div[1]/div/a''').get_attribute(name="href")
+        else:
+            profile_url = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div[1]/div[1]/div/div[2]/div[1]/a''').get_attribute(name="href")
     except:
         pass
 
@@ -170,6 +178,16 @@ def create_user_from_div(div):
         pass
 
 
+    if quote_post:
+        try:
+            verified_svg_label = div.find_element(By.XPATH, '''.//div/div/article/div/div/div[2]/div[2]/div[1]/div/div[1]/div/div/div[1]/div/a/div/div[2]/span/*''').get_attribute("aria-label")
+
+            if verified_svg_label == "Verified account":
+                verified = True
+        except:
+            pass
+
+
     # Need to try this twice because sometimes it might be alone and not be second
     try:
         protected_svg_label = div.find_element(By.XPATH, '''.//div/div/div/div/div[2]/div/div[1]/div/div[1]/a/div/div[2]/span/*[1]''').get_attribute("aria-label")
@@ -193,10 +211,12 @@ def create_user_from_div(div):
 
 
 
-def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_after_scrolling = 2.0):
+def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_after_scrolling = 2.0, quote_page = False):
     '''
     This function scrapes followers off of a single follower/following page 
     (and other similarly formatted pages)
+
+    If the page is a page of quoted posts (an engagement page), then set `quote_page` to True as the XPATHs for creating a user change
 
     Returns
     ----
@@ -237,7 +257,7 @@ def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_afte
         # Go from the last div at the bottom towards the top
         for div in all_divs[::-1]:
             try:
-                user = create_user_from_div(div)
+                user = create_user_from_div(div, quote_post=quote_page)
 
                 if user.url in user_urls:
                     break
