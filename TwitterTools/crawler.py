@@ -13,6 +13,7 @@ from requests import request
 import json
 import keyring
 import random
+from IPython.display import clear_output
 
 from .data_tools import get_df_of_user_to_unfollow
 
@@ -424,7 +425,13 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
     #     print(row_tuple[1])
     # return
 
+    # String holder to hold all activity messages that should print before a constantly
+    # updating progress bar 
+    messages = ""
+
     for row_tuple in unfollow_df.iterrows():
+        print(f"Tabs open: {opened_tabs}/{number_to_unfollow}", end = "\r")
+
         time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
 
         row = row_tuple[1]
@@ -450,7 +457,10 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
                 return
 
         else:
-            print(f"{row['handle']} hasn't had activity in {days_since_last_activity.days} days")
+            # Need to clear everything out and reprint so the updating message stays at the bottom
+            clear_output()
+            messages += f"{row['handle']} hasn't had activity in {days_since_last_activity.days} days\n"
+            print(messages)
 
 
 
