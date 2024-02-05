@@ -461,3 +461,16 @@ def get_df_of_user_to_unfollow(handles_to_skip = [], unfollow_after_days = 7):
 #             df.reset_index(drop=True, inplace=True)
     
 #     save_df_to_excel(df)
+
+
+
+
+def add_user_to_accounts_to_skip(handle):
+    # Read in existing file
+    df = pd.read_excel(os.path.join(_get_data_dir_name(), "accounts_to_skip.xlsx"))
+
+    df = combine_dataframes(df, pd.DataFrame([handle]))
+
+    df = df.drop_duplicates(subset = ["handle"], keep='first')
+
+    df.to_excel(os.path.join(_get_data_dir_name(), "accounts_to_skip.xlsx"), index = False)

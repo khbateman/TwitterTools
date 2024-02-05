@@ -1075,3 +1075,60 @@ def test_get_urls_of_user_to_unfollow_04(create_working_dir_with_data_dir_and_fi
 
     assert len(expected) == unfollow_df.shape[0]
     assert set(unfollow_df["url"]).issubset(set(expected))
+
+
+def test_add_user_to_accounts_to_skip_01(create_working_dir_with_data_dir_and_files):
+    data_tools.add_user_to_accounts_to_skip("some_handle")
+
+    # Empty file with one user added
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx", "accounts_to_skip_02.xlsx")
+
+
+def test_add_user_to_accounts_to_skip_02(create_working_dir_with_data_dir_and_files):
+    # File with users to start, make sure they stay and new one is added
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_skip_01.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx")
+
+
+    data_tools.add_user_to_accounts_to_skip("some_handle")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx", "accounts_to_skip_03.xlsx")
+
+
+def test_add_user_to_accounts_to_skip_03(create_working_dir_with_data_dir_and_files):
+    # File with users to start, make sure they stay and new one is added
+    # Adding multiple users in a row
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_skip_01.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx")
+
+
+    data_tools.add_user_to_accounts_to_skip("some_handle")
+    data_tools.add_user_to_accounts_to_skip("some_handle2")
+    data_tools.add_user_to_accounts_to_skip("some_handle3")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx", "accounts_to_skip_04.xlsx")
+
+
+def test_add_user_to_accounts_to_skip_04(create_working_dir_with_data_dir_and_files):
+    # File with users to start, make sure they stay and new one is added
+    # Making sure duplicates aren't added
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_skip_01.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx")
+
+    data_tools.add_user_to_accounts_to_skip("some_handle")
+    data_tools.add_user_to_accounts_to_skip("some_handle2")
+    data_tools.add_user_to_accounts_to_skip("some_handle3")
+    data_tools.add_user_to_accounts_to_skip("some_handle")
+    data_tools.add_user_to_accounts_to_skip("some_handle2")
+    data_tools.add_user_to_accounts_to_skip("some_handle3")
+
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx", "accounts_to_skip_04.xlsx")
+
+
+def test_add_user_to_accounts_to_skip_05(create_working_dir_with_data_dir_and_files):
+    # File with users to start
+    # Making sure duplicates aren't added (trying handle that was already to start)
+    # Nothing should change
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_skip_01.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx")
+
+    data_tools.add_user_to_accounts_to_skip("another_account")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx", "accounts_to_skip_01.xlsx")

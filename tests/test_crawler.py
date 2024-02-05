@@ -543,6 +543,15 @@ class TestCrawlerUserPage():
         assert len(all_user_divs) == 0
 
 
+    def test_get_all_user_divs_search_page_04(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_search_failure.html")
+
+        get_driver.get("file://" + file_path)
+
+        all_user_divs = crawler.get_all_user_divs_from_search(get_driver)
+
+        assert len(all_user_divs) == 0
 
 
 class TestTimeSinceRecentActivitySinglePage():
@@ -956,4 +965,49 @@ def test_create_search_url_03():
     assert crawler.create_search_url('''charlotte !"#$%&'()*+,/:;=?@[]''') == "https://twitter.com/search?q=charlotte%20!%22%23%24%25%26%27()*%2B%2C%2F%3A%3B%3D%3F%40%5B%5D&src=typed_query&f=user"
 
 
-    
+
+
+
+class TestCrawlUserPageFollowCriteria():
+    def test_get_follower_count_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # users, urls = crawler.scrape_single_follow_page(get_driver, "file://" + file_path, sleep_after_loading = 0, sleep_after_scrolling = 0)
+
+
+        # Valid posts page
+        pass
+
+    def test_get_follower_count_02(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-likes.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid likes page
+        pass
+
+    def test_get_follower_count_03(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_02-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid posts page, empty
+        pass
+
+    def test_get_follower_count_04(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_02-likes.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid likes page, empty
+        pass
+
+    def test_get_follower_count_05(self, get_driver):
+        # Invalid page
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_2.html")
+        get_driver.get("file://" + file_path)
+
+        pass

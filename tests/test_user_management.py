@@ -47,3 +47,23 @@ def test_is_account_to_follow_accounts_to_skip(test_case):
 
 
 
+USER_TEST_CASES_ADDTL_CRITERIA = [([-1, 0, 0, 0], None),
+                                  ([0, -1, 0, 0], None),
+                                  ([0, 0, -1, 0], None),
+                                  ([0, 0, 0, -1], None),
+                                  ([200, 200, 200, 1], True),
+                                  ([1, 200, 200, 1], False),
+                                  ([200, 1, 200, 1], False),
+                                  ([200, 200, 1, 1], False),
+                                  ([200, 200, 200, 999], False),
+                                    ]
+
+@pytest.mark.parametrize('test_case', USER_TEST_CASES_ADDTL_CRITERIA)
+def test_is_account_to_follow_accounts_to_skip(test_case):
+    # Using above test cases as arguments to the function, make
+    # sure the result is the second element in the tuple
+    assert user_management.meets_additional_account_following_criteria(
+        test_case[0][0],
+        test_case[0][1],
+        test_case[0][2],
+        test_case[0][3]) == test_case[1]

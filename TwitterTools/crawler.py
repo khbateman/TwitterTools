@@ -524,6 +524,11 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
         # Get all the divs for each user (wildcard path)
         all_user_divs = get_all_user_divs_from_search(driver)
 
+        if len(all_user_divs) == 0:
+            # Search is empty, break out
+            search_exhausted = True
+            break
+
 
         # Before starting the loop, check if nothing has changed
         # (i.e. - final user in list is different)
@@ -606,8 +611,24 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
 
 
 
-def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = 0):
-    '''`sleep_between_tabs` will generate a random number between 0 and that value to sleep'''
+def get_follower_count(driver):
+    '''
+    `driver` should be an already logged-in Selenium driver navigated to a user's profile page
+
+    Returns
+    ----
+    integer of the number of users that follow a given account. If an error occurs and the count can't be found, -1 will be returned
+    '''
+
+    follower_count = -1
+
+    return
+
+
+def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5)):
+    '''
+    `sleep_between_tabs` will generate a random number between the two values and that value to sleep
+    '''
 
     # accounts_to_follow_df = pd.read_excel("accounts_to_follow.xlsx")
     accounts_to_follow_df = get_accounts_to_follow_df()
@@ -617,7 +638,7 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = 0):
     print(handles_to_follow)
 
     for i in range(len(handles_to_follow)):
-        time.sleep(random.randint(0, sleep_between_tabs))
+        time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
         
         handle = handles_to_follow[i]
         driver.get(f"https://www.twitter.com/{handle}")
