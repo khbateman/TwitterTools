@@ -1147,7 +1147,10 @@ STRINGS = [("36.5K posts", 36500),
            ("0 posts", 0),
            ("0 likes", 0),
            ("42.6K Followers", 42600),
-           ("1.8M Followers", 1800000)]
+           ("1.8M Followers", 1800000),
+           ("2M", 2000000),
+           ("8.7K", 8700),
+]
 
 @pytest.mark.parametrize('test_case', STRINGS)
 def test_parse_string_number_to_int(test_case):

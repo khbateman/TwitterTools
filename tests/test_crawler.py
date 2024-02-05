@@ -974,11 +974,8 @@ class TestCrawlUserPageFollowCriteria():
         file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-posts.html")
         get_driver.get("file://" + file_path)
 
-        # users, urls = crawler.scrape_single_follow_page(get_driver, "file://" + file_path, sleep_after_loading = 0, sleep_after_scrolling = 0)
-
-
         # Valid posts page
-        pass
+        assert crawler.get_follower_count(get_driver) == 309800
 
     def test_get_follower_count_02(self, get_driver):
         current_dir = os.path.dirname(__file__)
@@ -986,7 +983,7 @@ class TestCrawlUserPageFollowCriteria():
         get_driver.get("file://" + file_path)
 
         # Valid likes page
-        pass
+        assert crawler.get_follower_count(get_driver) == 309800
 
     def test_get_follower_count_03(self, get_driver):
         current_dir = os.path.dirname(__file__)
@@ -994,7 +991,7 @@ class TestCrawlUserPageFollowCriteria():
         get_driver.get("file://" + file_path)
 
         # Valid posts page, empty
-        pass
+        assert crawler.get_follower_count(get_driver) == 0
 
     def test_get_follower_count_04(self, get_driver):
         current_dir = os.path.dirname(__file__)
@@ -1002,7 +999,7 @@ class TestCrawlUserPageFollowCriteria():
         get_driver.get("file://" + file_path)
 
         # Valid likes page, empty
-        pass
+        assert crawler.get_follower_count(get_driver) == 0
 
     def test_get_follower_count_05(self, get_driver):
         # Invalid page
@@ -1010,4 +1007,45 @@ class TestCrawlUserPageFollowCriteria():
         file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_2.html")
         get_driver.get("file://" + file_path)
 
-        pass
+        assert crawler.get_follower_count(get_driver) == -1
+    
+
+    def test_get_posts_count_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid posts page
+        assert crawler.get_post_count(get_driver) == 33100
+
+    def test_get_posts_count_02(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-likes.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid likes page
+        assert crawler.get_post_count(get_driver) == 20600
+
+    def test_get_posts_count_03(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_02-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid posts page, empty
+        assert crawler.get_post_count(get_driver) == 0
+
+    def test_get_posts_count_04(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_02-likes.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid likes page, empty
+        assert crawler.get_post_count(get_driver) == 0
+
+    def test_get_posts_count_05(self, get_driver):
+        # Invalid page
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_2.html")
+        get_driver.get("file://" + file_path)
+
+        assert crawler.get_post_count(get_driver) == -1

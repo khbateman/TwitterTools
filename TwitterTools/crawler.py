@@ -622,7 +622,40 @@ def get_follower_count(driver):
 
     follower_count = -1
 
-    return
+    try:
+        # Note multiple wildcards because empty pages are slightly different
+        text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div/div[*]/div[*]/div[2]/a/span[1]/span''').text
+
+        follower_count = parse_string_number_to_int(text)
+    except:
+        pass
+
+    return follower_count
+
+
+def get_post_count(driver):
+    '''
+    `driver` should be an already logged-in Selenium driver navigated to a user's profile page
+
+    Returns
+    ----
+    integer of the number of posts for a given account. This can be applied to various pages of similar format (ex - posts / likes)
+    
+    If an error occurs and the count can't be found, -1 will be returned
+    '''
+
+    post_count = -1
+
+    try:
+        # Note multiple wildcards because empty pages are slightly different
+        text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[1]/div[1]/div/div/div/div/div/div[2]/div/div''').text
+
+        post_count = parse_string_number_to_int(text)
+    except:
+        pass
+
+    return post_count
+
 
 
 def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5)):
