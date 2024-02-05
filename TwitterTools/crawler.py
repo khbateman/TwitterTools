@@ -600,7 +600,7 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
         next_scroll_y += 1000
         seconds_elapsed = (datetime.now() - start_time).seconds
     
-    print(f"Finished search crawl after {seconds_elapsed} secs and finding {len(tmp_users)} new users")
+    print(f"Finished search '{query}' after {seconds_elapsed} secs and finding {len(tmp_users)} new users")
 
     # for user in tmp_users:
     #     print(user.handle)

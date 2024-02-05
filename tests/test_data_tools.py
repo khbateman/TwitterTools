@@ -1175,3 +1175,110 @@ def test_parse_string_number_to_int_failure_04():
 def test_parse_string_number_to_int_failure_05():
     with pytest.raises(Exception):
         data_tools.parse_string_number_to_int("k followers")
+
+
+
+def test_update_accounts_to_follow_row_01(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # valid handle with no other arguments, nothing should change
+    data_tools.update_accounts_to_follow_row(handle = "UNC_athletics")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07a.xlsx")
+
+
+def test_update_accounts_to_follow_row_02(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # invalid handle with no other arguments, nothing should change
+    data_tools.update_accounts_to_follow_row(handle = "UNC_athletics_doesnt_exist")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07a.xlsx")
+
+
+def test_update_accounts_to_follow_row_03(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with new url
+    data_tools.update_accounts_to_follow_row(handle = "UNC_athletics",
+                                             url = "https://twitter.com/UNC_athletics_new_url")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07b.xlsx")
+
+
+def test_update_accounts_to_follow_row_04(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with new followed (shouldn't be deleted with followed filter)
+    data_tools.update_accounts_to_follow_row(handle = "some_acct2",
+                                             followed = True)
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07c.xlsx")
+
+
+def test_update_accounts_to_follow_row_05(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with new ready_to_follow
+    data_tools.update_accounts_to_follow_row(handle = "account_6",
+                                             ready_to_follow = False)
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07d.xlsx")
+
+
+def test_update_accounts_to_follow_row_06(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with new source
+    data_tools.update_accounts_to_follow_row(handle = "some_acct1",
+                                             source = "some new source")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07e.xlsx")
+
+
+def test_update_accounts_to_follow_row_07(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with new source
+    data_tools.update_accounts_to_follow_row(handle = "some_acct1",
+                                             source = "some new source")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07e.xlsx")
+
+
+def test_update_accounts_to_follow_row_08(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with multiple new values
+    data_tools.update_accounts_to_follow_row(handle = "jessicaDavis",
+                                             url = "newurl.com", 
+                                             followed = True, 
+                                             ready_to_follow = True, 
+                                             source = "this source changed")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07f.xlsx")
+
+
+def test_update_accounts_to_follow_row_09(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with multiple new values, but one is invalid, nothing should update
+    data_tools.update_accounts_to_follow_row(handle = "jessicaDavis",
+                                             url = "newurl.com", 
+                                             followed = 'invalid value', 
+                                             ready_to_follow = True, 
+                                             source = "this source changed")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07a.xlsx")
+
+def test_update_accounts_to_follow_row_10(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07a.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Valid handle with multiple new values, but one is invalid, nothing should update
+    data_tools.update_accounts_to_follow_row(handle = "jessicaDavis",
+                                             url = "newurl.com", 
+                                             followed = True, 
+                                             ready_to_follow = 99, 
+                                             source = "this source changed")
+
+    assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07a.xlsx")

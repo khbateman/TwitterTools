@@ -507,3 +507,33 @@ def parse_string_number_to_int(string):
     # Return value converted to integer
     return int(converted_num)
 
+
+def update_accounts_to_follow_row(handle, url = None, followed = None, ready_to_follow = None, source = None):
+    '''
+    Finds handle row in accounts_to_follow.xlsx if it exists and updates other arguments
+    that are not `None`
+    '''
+    df = get_accounts_to_follow_df()
+
+    if url is not None:
+        df.loc[df["handle"] == handle, "url"] = url
+
+    if followed is not None:
+        if followed == True or followed == False:
+            df.loc[df["handle"] == handle, "followed"] = followed
+        else:
+            # invalid input, return without saving
+            return
+
+    if ready_to_follow is not None:
+        if ready_to_follow == True or ready_to_follow == False:
+            df.loc[df["handle"] == handle, "ready_to_follow"] = ready_to_follow
+        else:
+            # invalid input, return without saving
+            return
+
+    if source is not None:
+        df.loc[df["handle"] == handle, "source"] = source
+    
+
+    save_df_to_excel(df, "accounts_to_follow.xlsx")
