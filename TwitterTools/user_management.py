@@ -39,6 +39,9 @@ def meets_additional_account_following_criteria(num_posts, num_likes, num_follow
     up following by making all opened tabs for following useful accounts and allows
     pre-processing of that data beforehand
 
+    Allows for extreme values in any argument to immediately make them validated 
+    to allow for bypassing later page loads to crawl things like likes pages
+
     Returns
     ----
     `True` - if all elements were successfully crawled and criteria is met
@@ -47,7 +50,16 @@ def meets_additional_account_following_criteria(num_posts, num_likes, num_follow
 
     `None` - if criteria wasn't successfully crawled
     '''
-    if num_posts < 0 or num_likes < 0 or num_followers < 0 or days_since_most_recent_activity < 0:
+    # Special cases
+    if num_posts >= 1000 and days_since_most_recent_activity <= 7:
+        return True
+    elif num_likes >= 1000 and days_since_most_recent_activity <= 7:
+        return True
+    elif num_followers >= 1000 and days_since_most_recent_activity <= 7:
+        return True
+
+
+    elif num_posts < 0 or num_likes < 0 or num_followers < 0 or days_since_most_recent_activity < 0:
         # Error cases
         return None
     else:

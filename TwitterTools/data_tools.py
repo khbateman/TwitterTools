@@ -537,3 +537,22 @@ def update_accounts_to_follow_row(handle, url = None, followed = None, ready_to_
     
 
     save_df_to_excel(df, "accounts_to_follow.xlsx")
+
+
+def get_rows_to_validate(num_rows_to_validate = -1):
+    '''
+    Reads in accounts_to_follow.xlsx and returns a filtered dataframe of the rows to validate
+
+    If `num_rows_to_validate` is -1, rows are not limited
+    '''
+    df = get_accounts_to_follow_df()
+
+    # Only want rows where we haven't followed them yet 
+    # (or processed, which also changes this to True)
+    # AND where they haven't been already validated
+    filtered_rows = df[(df["followed"] == False) & (df["ready_to_follow"] == False)]
+
+    if num_rows_to_validate == -1:
+        return filtered_rows
+    else:
+        return filtered_rows.iloc[:num_rows_to_validate, :]

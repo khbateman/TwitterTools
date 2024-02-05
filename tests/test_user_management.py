@@ -56,6 +56,9 @@ USER_TEST_CASES_ADDTL_CRITERIA = [([-1, 0, 0, 0], None),
                                   ([200, 1, 200, 1], False),
                                   ([200, 200, 1, 1], False),
                                   ([200, 200, 200, 999], False),
+                                  ([1001, -1, -1, 6], True),
+                                  ([-1, 1001, -1, 6], True),
+                                  ([-1, -1, 1001, 6], True),
                                     ]
 
 @pytest.mark.parametrize('test_case', USER_TEST_CASES_ADDTL_CRITERIA)

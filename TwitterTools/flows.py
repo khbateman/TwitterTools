@@ -238,3 +238,95 @@ def update_excel_file_with_accounts_to_follow(
     # accounts_to_follow_df.to_excel("accounts_to_follow.xlsx", index=False)
 
     # return accounts_to_follow_df
+
+
+
+def validate_accounts_to_follow(driver, num_rows_to_validate = -1, activity_within_days = 60, sleep_after_loading = 2, sleep_between_users = (3, 7), print_progress = False):
+    '''
+    If `num_rows_to_validate` is -1, rows are not limited
+
+    Takes a logged-in driver and validates any row in the data where the user is
+    1) not followed
+    2) hasn't already been validated through other means (ex - recently liking a relevant post)
+
+    If a user has been successfully evaluated, they'll either be
+    1) Valid (`followed` will remain False and `ready_to_follow` will be changed to True)
+    2) Invalid (`followed` will be changed to True so the row will be removed next crawl)
+    
+    If there is an error in crawling, nothing gets updated for that user
+    '''
+    rows_to_validate = get_rows_to_validate(num_rows_to_validate)
+
+    for index, row in rows_to_validate.iterrows():
+
+        if print_progress:
+            print(f"Validating {row['handle']}", end = "")
+
+        # Placeholder in case second page doesn't get crawled
+        overall_validation_result = None
+
+        driver.get(row["url"])
+        time.sleep(sleep_after_loading)
+
+        num_likes = -1
+        post_count = get_post_count(driver)
+        follower_count = get_follower_count(driver)
+        days_since_last_post = get_time_lapsed_since_most_recent_activity_single_page(
+                        driver, 
+                        stop_checking_after_days_threshold_met = activity_within_days, 
+                        already_loaded = True)
+        
+        # This will only be True or None with the num_likes value as -1
+        first_page_validation_result = meets_additional_account_following_criteria(
+                                            num_posts = post_count, 
+                                            num_likes = num_likes, 
+                                            num_followers = follower_count, 
+                                            days_since_most_recent_activity = days_since_last_post)
+        
+
+        if first_page_validation_result is None:
+            # Extreme cases not met, need to continue on to likes page for full validation
+            driver.get(f"https://twitter.com/{row['handle']}/likes")
+            time.sleep(sleep_after_loading)
+
+            num_likes = get_post_count(driver)
+            days_since_last_like = get_time_lapsed_since_most_recent_activity_single_page(
+                        driver, 
+                        stop_checking_after_days_threshold_met = activity_within_days, 
+                        already_loaded = True)
+            
+            if days_since_last_like < days_since_last_post:
+                days_since_last_activity = days_since_last_like
+            else:
+                days_since_last_activity = days_since_last_post
+            
+
+            overall_validation_result = meets_additional_account_following_criteria(
+                                            num_posts = post_count, 
+                                            num_likes = num_likes, 
+                                            num_followers = follower_count, 
+                                            days_since_most_recent_activity = days_since_last_activity)
+
+    
+
+        # Can't omit the ==True check because it will error out when it's None
+        if first_page_validation_result == True or overall_validation_result == True:
+            # Update row in file
+            update_accounts_to_follow_row(handle = row["handle"], ready_to_follow = True)
+            
+            if print_progress:
+                print(f" | Result: True (1st Page: {first_page_validation_result} Overall: {overall_validation_result})")
+        elif overall_validation_result == False:
+            # Update row in file so it will be filtered out next time
+            update_accounts_to_follow_row(handle = row["handle"], followed = True)
+
+            # And add the handle to accounts_to_skip
+            add_user_to_accounts_to_skip(row["handle"])
+
+            print(f" | Result: False (1st Page: {first_page_validation_result} Overall: {overall_validation_result})")
+        
+
+        # Pause between validating another user to avoid rate limits
+        time.sleep(random.randint(sleep_between_users[0], sleep_between_users[1]))
+
+    

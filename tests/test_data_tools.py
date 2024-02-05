@@ -1282,3 +1282,72 @@ def test_update_accounts_to_follow_row_10(create_working_dir_with_data_dir_and_f
                                              source = "this source changed")
 
     assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx", "accounts_to_follow_07a.xlsx")
+
+
+
+def test_get_rows_to_validate_01(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07g.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Getting all the rows
+    df = data_tools.get_rows_to_validate()
+
+    assert df.shape[0] == 3
+
+
+def test_get_rows_to_validate_02(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07g.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Getting a subset
+    df = data_tools.get_rows_to_validate(2)
+
+    assert df.shape[0] == 2
+
+def test_get_rows_to_validate_03(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07g.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Getting a single row
+    df = data_tools.get_rows_to_validate(1)
+
+    assert df.shape[0] == 1
+
+
+def test_get_rows_to_validate_04(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07g.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Getting no rows
+    df = data_tools.get_rows_to_validate(0)
+
+    assert df.shape[0] == 0
+
+def test_get_rows_to_validate_05(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07h.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # No rows meet criteria, all ready_to_follow == True
+    df = data_tools.get_rows_to_validate()
+
+    assert df.shape[0] == 0
+
+def test_get_rows_to_validate_06(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07i.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # No rows meet criteria, all followed == True
+    df = data_tools.get_rows_to_validate()
+
+    assert df.shape[0] == 0
+
+
+def test_get_rows_to_validate_07(create_working_dir_with_data_dir_and_files):
+    copy_file_from_testing_resources_to_tmp_dir("accounts_to_follow_07g.xlsx", create_working_dir_with_data_dir_and_files, "accounts_to_follow.xlsx")
+
+    # Getting more rows than are present
+    df = data_tools.get_rows_to_validate(999)
+
+    assert df.shape[0] == 3
+
+
+def test_get_rows_to_validate_08(create_working_dir_with_data_dir_and_files):
+
+    # No rows, should be empty
+    df = data_tools.get_rows_to_validate()
+
+    assert df.shape[0] == 0
