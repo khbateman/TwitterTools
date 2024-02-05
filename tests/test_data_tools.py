@@ -1132,3 +1132,43 @@ def test_add_user_to_accounts_to_skip_05(create_working_dir_with_data_dir_and_fi
     data_tools.add_user_to_accounts_to_skip("another_account")
 
     assert compare_tmp_file_with_test_file(create_working_dir_with_data_dir_and_files, "accounts_to_skip.xlsx", "accounts_to_skip_01.xlsx")
+
+
+
+
+STRINGS = [("36.5K posts", 36500),
+           ("1.2K posts", 1200),
+           ("12.1K likes", 12100),
+           ("6.5K likes", 6500),
+           ("1,212 posts", 1212),
+           ("4,365 likes", 4365),
+           ("804 posts", 804),
+           ("79 likes", 79),
+           ("0 posts", 0),
+           ("0 likes", 0),
+           ("42.6K Followers", 42600),
+           ("1.8M Followers", 1800000)]
+
+@pytest.mark.parametrize('test_case', STRINGS)
+def test_parse_string_number_to_int(test_case):
+    assert data_tools.parse_string_number_to_int(test_case[0]) == test_case[1]
+
+def test_parse_string_number_to_int_failure_01():
+    with pytest.raises(Exception):
+        data_tools.parse_string_number_to_int("No number here Followers")
+
+def test_parse_string_number_to_int_failure_02():
+    with pytest.raises(Exception):
+        data_tools.parse_string_number_to_int("Zero Followers")
+
+def test_parse_string_number_to_int_failure_03():
+    with pytest.raises(Exception):
+        data_tools.parse_string_number_to_int("")
+
+def test_parse_string_number_to_int_failure_04():
+    with pytest.raises(Exception):
+        data_tools.parse_string_number_to_int("m followers")
+
+def test_parse_string_number_to_int_failure_05():
+    with pytest.raises(Exception):
+        data_tools.parse_string_number_to_int("k followers")

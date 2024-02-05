@@ -474,3 +474,36 @@ def add_user_to_accounts_to_skip(handle):
     df = df.drop_duplicates(subset = ["handle"], keep='first')
 
     df.to_excel(os.path.join(_get_data_dir_name(), "accounts_to_skip.xlsx"), index = False)
+
+
+def parse_string_number_to_int(string):
+    '''
+    Takes in a number from various parts of a profile page and returns the integer value
+    
+    If string can't be converted, an Exception will be thrown
+    '''
+
+    # Get the first word, which should be the number and make it lowercase
+    number_string = string.split(" ")[0].lower()
+
+    multiplier = 1.0
+
+    if "m" in number_string:
+        multiplier = 1000000
+        number_string = number_string.replace("m", "")
+    elif "k" in number_string:
+        multiplier = 1000
+        number_string = number_string.replace("k", "")
+
+    # remove commas
+    number_string = number_string.replace(",", "")
+
+    # Non numbers should fail here
+    converted_num = float(number_string)
+
+    # Use the multiplier to get the raw number
+    converted_num *= multiplier
+
+    # Return value converted to integer
+    return int(converted_num)
+
