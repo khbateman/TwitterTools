@@ -312,7 +312,7 @@ def scrape_follow_pages(driver, twitter_handle, following = True, verified_follo
 
 
 
-def get_time_lapsed_since_most_recent_activity_single_page(driver, url, stop_checking_after_days_threshold_met = 7, sleep_after_loading = 2, already_loaded = False):
+def get_time_lapsed_since_most_recent_activity_single_page(driver, url = "", stop_checking_after_days_threshold_met = 7, sleep_after_loading = 2, already_loaded = False):
     '''
     `already_loaded` - allows the function to run in different flows where the driver
     is already on the page and doesn't need to navigate there
