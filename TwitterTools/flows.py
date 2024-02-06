@@ -280,7 +280,7 @@ def validate_accounts_to_follow(driver, num_rows_to_validate = -1, activity_with
         days_since_last_post = get_time_lapsed_since_most_recent_activity_single_page(
                         driver, 
                         stop_checking_after_days_threshold_met = activity_within_days, 
-                        already_loaded = True)
+                        already_loaded = True).days # important to get the int from the timedelta
         
         # This will only be True or None with the num_likes value as -1
         first_page_validation_result = meets_additional_account_following_criteria(
@@ -299,7 +299,7 @@ def validate_accounts_to_follow(driver, num_rows_to_validate = -1, activity_with
             days_since_last_like = get_time_lapsed_since_most_recent_activity_single_page(
                         driver, 
                         stop_checking_after_days_threshold_met = activity_within_days, 
-                        already_loaded = True)
+                        already_loaded = True).days # important to get the int from the timedelta
             
             if days_since_last_like < days_since_last_post:
                 days_since_last_activity = days_since_last_like
