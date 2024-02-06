@@ -58,8 +58,9 @@ def meets_additional_account_following_criteria(num_posts, num_likes, num_follow
     elif num_followers >= 1000 and days_since_most_recent_activity <= 7:
         return True
 
-
-    elif num_posts < 0 or num_likes < 0 or num_followers < 0 or days_since_most_recent_activity < 0:
+    # If the value in get_time_lapsed_since_most_recent_activity_single_page() or get_time_lapsed_since_most_recent_activity_multi_page() changes
+    # this check for most recent activity will need to change
+    elif num_posts < 0 or num_likes < 0 or num_followers < 0 or days_since_most_recent_activity == 9999:
         # Error cases
         return None
     else:

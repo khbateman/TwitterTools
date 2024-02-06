@@ -318,6 +318,7 @@ def get_time_lapsed_since_most_recent_activity_single_page(driver, url = "", sto
     is already on the page and doesn't need to navigate there
     '''
     # Checks the most recent date of post or post liked. Start with big number
+    # Don't change this default value without changing flows.validate_accounts_to_follow() and user_management.meets_additional_account_following_criteria()
     time_since_most_recent_activity = timedelta(days=9999)
 
     if not already_loaded:
@@ -330,6 +331,7 @@ def get_time_lapsed_since_most_recent_activity_single_page(driver, url = "", sto
     try:
         post_divs = driver.find_elements(By.XPATH, """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/section/div/div/div[*]""")
     except:
+        # Don't change this default value without changing flows.validate_accounts_to_follow() and user_management.meets_additional_account_following_criteria()
         return timedelta(days=9999)
     
     for div in post_divs:
@@ -357,6 +359,7 @@ def get_time_lapsed_since_most_recent_activity_single_page(driver, url = "", sto
 
 def get_time_lapsed_since_most_recent_activity_multi_page(driver, urls, stop_checking_after_days_threshold_met = 7, sleep_after_loading = 2):
     # Checks the most recent date of post or post liked 
+    # Don't change this default value without changing flows.validate_accounts_to_follow() and user_management.meets_additional_account_following_criteria()
     time_since_most_recent_activity = timedelta(days=9999)
 
     for url in urls:

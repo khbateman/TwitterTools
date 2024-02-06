@@ -1049,3 +1049,11 @@ class TestCrawlUserPageFollowCriteria():
         get_driver.get("file://" + file_path)
 
         assert crawler.get_post_count(get_driver) == -1
+    
+    def test_page_load_fail_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/page_load_fail.html")
+        get_driver.get("file://" + file_path)
+
+        # Check to make sure this default failing value hasn't been changed. Other functions check for it explicitly.
+        assert crawler.get_time_lapsed_since_most_recent_activity_single_page(get_driver, already_loaded = True).days == 9999

@@ -247,7 +247,13 @@ def update_excel_file_with_accounts_to_follow(
 
 
 
-def validate_accounts_to_follow(driver, num_rows_to_validate = -1, activity_within_days = 60, sleep_after_loading = 2, sleep_between_users = (3, 7), print_progress = False):
+def validate_accounts_to_follow(driver, 
+                                num_rows_to_validate = -1, 
+                                activity_within_days = 60, 
+                                sleep_after_loading = 2, 
+                                sleep_between_users = (3, 7),
+                                sleep_after_failed_loads = 60,
+                                print_progress = False):
     '''
     If `num_rows_to_validate` is -1, rows are not limited
 
@@ -330,7 +336,18 @@ def validate_accounts_to_follow(driver, num_rows_to_validate = -1, activity_with
             add_user_to_accounts_to_skip(row["handle"])
 
             print(f" | Result: False (1st Page: {first_page_validation_result} Overall: {overall_validation_result})")
+        else:
+            print(f" | Result: ? (1st Page: {first_page_validation_result} Overall: {overall_validation_result})")
         
+        # If it runs into a rate limit and fails, sleep for a long time to reset
+        if overall_validation_result is None:
+            # To make the progress printed, sleep in one second increments and print
+            for i in range(sleep_after_failed_loads):
+                print(f"Page load failed. Sleeping to reset: {i}/{sleep_after_failed_loads}", end = "\r")
+                time.sleep(1)
+            
+            # print to create a new line after the carriage returns above
+            print()
 
         # Pause between validating another user to avoid rate limits
         time.sleep(random.randint(sleep_between_users[0], sleep_between_users[1]))
