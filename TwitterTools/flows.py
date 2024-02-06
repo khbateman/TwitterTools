@@ -339,15 +339,16 @@ def validate_accounts_to_follow(driver,
         else:
             print(f" | Result: ? (1st Page: {first_page_validation_result} Overall: {overall_validation_result})")
         
-        # If it runs into a rate limit and fails, sleep for a long time to reset
-        if overall_validation_result is None:
+            # Likely run into a rate limit and failed, sleep for a long time to reset
             # To make the progress printed, sleep in one second increments and print
             for i in range(sleep_after_failed_loads):
-                print(f"Page load failed. Sleeping to reset: {i}/{sleep_after_failed_loads}", end = "\r")
+                if print_progress:
+                    print(f"Page load failed. Sleeping to reset: {i}/{sleep_after_failed_loads}", end = "\r")
                 time.sleep(1)
             
             # print to create a new line after the carriage returns above
-            print()
+            if print_progress:
+                print()
 
         # Pause between validating another user to avoid rate limits
         time.sleep(random.randint(sleep_between_users[0], sleep_between_users[1]))
