@@ -343,7 +343,7 @@ def validate_accounts_to_follow(driver,
             # To make the progress printed, sleep in one second increments and print
             for i in range(sleep_after_failed_loads):
                 if print_progress:
-                    print(f"Page load failed. Sleeping to reset: {i}/{sleep_after_failed_loads}", end = "\r")
+                    print(f"Page load failed. Sleeping to reset: {i + 1}/{sleep_after_failed_loads}", end = "\r")
                 time.sleep(1)
             
             # print to create a new line after the carriage returns above
