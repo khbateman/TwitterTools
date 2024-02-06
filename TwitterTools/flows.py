@@ -44,7 +44,8 @@ def update_excel_file_with_accounts_to_follow(
         post_urls = [], 
         scrape_post_quotes = True, 
         scrape_post_reposts = True, 
-        scrape_post_likes = True):
+        scrape_post_likes = True,
+        sleep_between_actions = (0, 7)):
     # start with existing lists
     # Make everyone we add "followed" = False, which will be changed
     # as we actually open the tabs to follow them so we don't have to recrawl this
@@ -83,6 +84,7 @@ def update_excel_file_with_accounts_to_follow(
 
         # First crawl every account from arguments passed in
         for user in users_to_scrape_followers:
+            time.sleep(random.randint(sleep_between_actions[0], sleep_between_actions[1]))
             followers = scrape_follow_pages(driver,
                                             twitter_handle = user,
                                             following = False,
@@ -122,6 +124,7 @@ def update_excel_file_with_accounts_to_follow(
         # crawl_users_from_search so we don't need that check for this
         # specific type of crawl
         for query in search_queries:
+            time.sleep(random.randint(sleep_between_actions[0], sleep_between_actions[1]))
             new_accounts = crawl_users_from_search(driver,
                                                 query = query,
                                                 num_accounts = num_search_query_accounts,
@@ -155,6 +158,7 @@ def update_excel_file_with_accounts_to_follow(
         # Go through posts to scrape engagements
         # Note that any direct post engagement will be noted that it's TRUE for ready_to_follow
         for post_url in post_urls:
+            time.sleep(random.randint(sleep_between_actions[0], sleep_between_actions[1]))
             # Clean the URL to allow for input of URLs either ending in / or not
             if post_url[-1] == "/":
                 cleaned_url = post_url[:-1]
@@ -197,6 +201,7 @@ def update_excel_file_with_accounts_to_follow(
                 #         accounts_to_follow_df = pd.concat([accounts_to_follow_df, tmp_row], axis = 0)
 
             if scrape_post_reposts:
+                time.sleep(random.randint(sleep_between_actions[0], sleep_between_actions[1]))
                 new_accounts, user_urls = scrape_single_follow_page(driver, f"{cleaned_url}/retweets")
 
                 update_accounts_to_follow_excel_from_user_list(
@@ -214,6 +219,7 @@ def update_excel_file_with_accounts_to_follow(
                 #         accounts_to_follow_df = pd.concat([accounts_to_follow_df, tmp_row], axis = 0)
 
             if scrape_post_quotes:
+                time.sleep(random.randint(sleep_between_actions[0], sleep_between_actions[1]))
                 new_accounts, user_urls = scrape_single_follow_page(driver, f"{cleaned_url}/quotes", quote_page=True)
 
                 update_accounts_to_follow_excel_from_user_list(

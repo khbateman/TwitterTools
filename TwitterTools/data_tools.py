@@ -370,21 +370,21 @@ def update_accounts_to_follow_excel_from_user_list(users, source, ready_to_follo
 
     `validate_users` - some crawling methods validate the users internally, so we can save time by not re-validating in those cases
     '''
+    if len(users) > 0:
+        if validate_users:
+            checked_users = []
+            for user in users:
+                # Verify it the account meets criteria for following
+                if is_account_to_follow(user, accounts_following, accounts_to_skip):
+                    checked_users.append(user)
+        else:
+            checked_users = users
 
-    if validate_users:
-        checked_users = []
-        for user in users:
-            # Verify it the account meets criteria for following
-            if is_account_to_follow(user, accounts_following, accounts_to_skip):
-                checked_users.append(user)
-    else:
-        checked_users = users
-
-    df = users_list_to_accounts_to_follow_df(checked_users, 
-                                            source = source,
-                                            ready_to_follow = ready_to_follow)
-            
-    accounts_to_follow_df_to_excel(df)
+        df = users_list_to_accounts_to_follow_df(checked_users, 
+                                                source = source,
+                                                ready_to_follow = ready_to_follow)
+                
+        accounts_to_follow_df_to_excel(df)
 
 
 def get_df_of_user_to_unfollow(handles_to_skip = [], unfollow_after_days = 7):
