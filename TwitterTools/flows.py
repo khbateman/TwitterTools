@@ -269,10 +269,15 @@ def validate_accounts_to_follow(driver,
     '''
     rows_to_validate = get_rows_to_validate(num_rows_to_validate)
 
-    for index, row in rows_to_validate.iterrows():
+    # For printing progress
+    counter = 0
+    row_count = len(rows_to_validate.iterrows())
 
+    for index, row in rows_to_validate.iterrows():
+        
         if print_progress:
-            print(f"Validating {row['handle']}", end = "")
+            counter += 1
+            print(f"({counter} / {row_count}) Validating {row['handle']}", end = "")
 
         # Placeholder in case second page doesn't get crawled
         overall_validation_result = None
