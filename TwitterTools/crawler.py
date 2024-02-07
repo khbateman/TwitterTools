@@ -675,6 +675,7 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
     accounts_to_follow_df = get_accounts_to_follow_df()
 
     unfollowed = accounts_to_follow_df[accounts_to_follow_df["followed"] == False]
+    unfollowed = unfollowed[unfollowed["ready_to_follow"] == True]
     handles_to_follow = list(unfollowed.iloc[:num_to_follow, :]["handle"])
 
     num_to_open = len(handles_to_follow)
