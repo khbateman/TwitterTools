@@ -271,7 +271,7 @@ def validate_accounts_to_follow(driver,
 
     # For printing progress
     counter = 0
-    row_count = len(rows_to_validate.iterrows())
+    row_count = rows_to_validate.shape[0]
 
     for index, row in rows_to_validate.iterrows():
         
