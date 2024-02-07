@@ -676,13 +676,17 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
 
     unfollowed = accounts_to_follow_df[accounts_to_follow_df["followed"] == False]
     handles_to_follow = list(unfollowed.iloc[:num_to_follow, :]["handle"])
-    print(handles_to_follow)
+
+    num_to_open = len(handles_to_follow)
+    print(f"Following {num_to_open} - {handles_to_follow}")
 
     for i in range(len(handles_to_follow)):
         time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
         
         handle = handles_to_follow[i]
         driver.get(f"https://www.twitter.com/{handle}")
+
+        print(f"({i + 1} / {num_to_open}) Opening - {handle}")
         
         if i < len(handles_to_follow) - 1:
             # open a new tab for next loop
