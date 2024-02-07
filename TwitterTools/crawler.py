@@ -681,13 +681,14 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
     print(f"Following {num_to_open} - {handles_to_follow}")
 
     for i in range(len(handles_to_follow)):
-        time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
         
         handle = handles_to_follow[i]
         driver.get(f"https://www.twitter.com/{handle}")
 
-        print(f"({i + 1} / {num_to_open}) Opening - {handle}")
+        print(f"({i + 1} / {num_to_open}) Opened - {handle}")
         
+        time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
+
         if i < len(handles_to_follow) - 1:
             # open a new tab for next loop
             # Copy cookies to put in new tab to avoid relogging in
