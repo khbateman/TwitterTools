@@ -15,7 +15,7 @@ import keyring
 import random
 from IPython.display import clear_output
 
-from .data_tools import get_df_of_user_to_unfollow
+from .data_tools import get_df_of_user_to_unfollow, _get_data_dir_name
 
 # Other TwitterTools imports
 from .User import User
@@ -703,4 +703,5 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
     
     # Using standard to_excel rather than this modules save method to avoid
     # removing the accounts to follow rows in cases of error
-    accounts_to_follow_df.to_excel("accounts_to_follow.xlsx", index=False)
+    file_path = os.path.join(_get_data_dir_name(), "accounts_to_follow.xlsx")
+    accounts_to_follow_df.to_excel(file_path, index=False)
