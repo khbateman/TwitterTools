@@ -212,7 +212,7 @@ def create_user_from_div(div, quote_post = False):
 
 
 
-def scrape_single_follow_page(driver, url, sleep_after_loading = 1.0, sleep_after_scrolling = 2.0, quote_page = False):
+def scrape_single_follow_page(driver, url, sleep_after_loading = 2.0, sleep_after_scrolling = 2.5, quote_page = False):
     '''
     This function scrapes followers off of a single follower/following page 
     (and other similarly formatted pages)
@@ -507,7 +507,7 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
     # driver.implicitly_wait(0.01)
 
     driver.get(create_search_url(query))
-    time.sleep(1.0)
+    time.sleep(2.0)
 
     start_time = datetime.now()
     seconds_elapsed = (datetime.now() - start_time).seconds
@@ -527,7 +527,7 @@ def crawl_users_from_search(driver, query, num_accounts, accounts_to_skip = [], 
         driver.execute_script(f"window.scrollTo(0, {next_scroll_y})")
 
         # Need to briefly wait after scrolling to let new users load
-        time.sleep(2.0)
+        time.sleep(3.0)
 
         # Get all the divs for each user (wildcard path)
         all_user_divs = get_all_user_divs_from_search(driver)
