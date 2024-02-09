@@ -51,11 +51,6 @@ def meets_additional_account_following_criteria(num_posts, num_likes, num_follow
     `None` - if criteria wasn't successfully crawled
     '''
 
-    print(f"num_posts: {num_posts}")
-    print(f"num_likes: {num_likes}")
-    print(f"num_followers: {num_followers}")
-    print(f"days_since_most_recent_activity: {days_since_most_recent_activity}")
-
     if num_posts >= 0 and num_posts < 100:
         return False
     elif num_followers == -1:
