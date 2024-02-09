@@ -49,8 +49,8 @@ The library source code is located in the `TwitterTools` directory, and the test
 * `flows.py` - primary functions for an end user. These represent the main activities for the library.
 * `user_management.py` - various analysis functions for Users
 
-### Notebooks
-Since no formal GUI exists for this library, Jupyter notebooks are provided as a makeshift user interface. Detailed instructions are in the notebooks for completing various Twitter activities with the library.
+### Notebooks / GUI
+Since no formal GUI exists for this library, Jupyter notebooks are provided as a makeshift user interface. Detailed instructions are in the notebooks for completing various Twitter activities with the library. Additionally, an intentional design choice was made to use Excel to save data rather than a database. A database would be a preferable choice in the future if an additional GUI is created. However, some of the data must be manipulated manually by the user (ex - adding some accounts to skip while manually reviewing). This would be extremely tedious to manually run database commands for each addition. So, Excel provides a nice makeshift UI in the absence of a formal interface. With a formal UI in the future, each Excel file could be easily migrated to database tables.
 
 ### Tests
 This library is thoroughly tested with `Pytest` for each release. Before making any change within the library, it's recommended to run the full testing suite to ensure nothing breaks. To run the suite, run the following command after navigating to the root directory of the project. You should get a result like the image that follows.
@@ -59,7 +59,7 @@ This library is thoroughly tested with `Pytest` for each release. Before making 
 python3 -m pytest tests/
 ```
 
-<div align="center" style="max-height: 140px; margin: 20px 0px"><img src="images/Testing_Results-min.jpg"></div>
+<div align="center" style="max-height: 200px; margin: 20px 0px"><img src="images/Testing_Results-min.jpg"></div>
 
 <br/>
 <br/>
@@ -71,7 +71,7 @@ python3 -m pytest tests/
 * Scraping users from specified search queries
 * Scraping interactions (retweets, quotes, likes) from specified posts
 
-This method additionally skips any user that has been previously followed by the account. Additionally, the library can further screen scraped users using `flows.validate_accounts_to_follow()` by systematically checking each one to ensure the user has recent activity, has a certain threshold of followers, and has at least a certain number of total posts / likes.
+This method additionally skips any user that has been previously followed by the account to avoid spamming the same accounts repeatedly. Also, the library can further screen scraped users using `flows.validate_accounts_to_follow()` by systematically navigating to their profiles and checking if each user has recent activity, has a certain threshold of followers, and has at least a certain number of total posts / likes.
 
 <div align="center" style="margin: 20px 0px"><img src="images/Scraping_posts.gif"></div>
 
