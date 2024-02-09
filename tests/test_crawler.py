@@ -1041,6 +1041,36 @@ class TestCrawlUserPageFollowCriteria():
 
         # Valid likes page, empty
         assert crawler.get_post_count(get_driver) == 0
+    
+    
+
+    def test_get_posts_date_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # Valid posts page, make sure it doesn't return reserved values 0 or 9999
+        assert crawler.get_time_lapsed_since_most_recent_activity_single_page(
+            get_driver,
+            stop_checking_after_days_threshold_met=7,
+            already_loaded=True).days != 0
+        assert crawler.get_time_lapsed_since_most_recent_activity_single_page(
+            get_driver,
+            stop_checking_after_days_threshold_met=7,
+            already_loaded=True).days != 9999
+    
+
+    def test_get_posts_date_02(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/following_scroll_2.html")
+        get_driver.get("file://" + file_path)
+
+        # Not a valid page, should return error value
+        assert crawler.get_time_lapsed_since_most_recent_activity_single_page(
+            get_driver,
+            stop_checking_after_days_threshold_met=7,
+            already_loaded=True).days == 9999
+
 
     def test_get_posts_count_05(self, get_driver):
         # Invalid page

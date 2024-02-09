@@ -50,24 +50,75 @@ def meets_additional_account_following_criteria(num_posts, num_likes, num_follow
 
     `None` - if criteria wasn't successfully crawled
     '''
-    # Special cases
-    if num_posts >= 1000 and days_since_most_recent_activity <= 7:
-        return True
-    elif num_likes >= 1000 and days_since_most_recent_activity <= 7:
-        return True
-    elif num_followers >= 1000 and days_since_most_recent_activity <= 7:
-        return True
 
+    print(f"num_posts: {num_posts}")
+    print(f"num_likes: {num_likes}")
+    print(f"num_followers: {num_followers}")
+    print(f"days_since_most_recent_activity: {days_since_most_recent_activity}")
+
+    if num_posts >= 0 and num_posts < 100:
+        return False
+    elif num_followers == -1:
+        return None
+    elif num_followers < 100:
+        return False
     # If the value in get_time_lapsed_since_most_recent_activity_single_page() or get_time_lapsed_since_most_recent_activity_multi_page() changes
     # this check for most recent activity will need to change
-    elif num_posts < 0 or num_likes < 0 or num_followers < 0 or days_since_most_recent_activity == 9999:
-        # Error cases
+    elif days_since_most_recent_activity == 9999:
         return None
-    else:
-        # Criteria for following
-        if num_posts > 100 and num_likes > 100 and num_followers > 100 and days_since_most_recent_activity < 60:
-            return True
-        else:
+    elif num_posts == -1:
+        if num_likes == -1:
+            return None
+        elif num_likes < 100:
             return False
+        else:
+            if days_since_most_recent_activity <= 60:
+                return True
+            else:
+                return False
+    elif num_likes == -1:
+        if days_since_most_recent_activity >= 60:
+            return None
+        else:
+            if num_posts > 1000 or num_followers > 1000:
+                return True
+            else:
+                return None
+    elif days_since_most_recent_activity > 60:
+        return False
+    elif num_posts > 1000 or num_followers > 1000:
+        return True
+    elif num_likes >= 0:
+        return True
+    
+
+    # Catch all
+    return None
+
+
+
+    # elif num_followers >= 1000:
+    #     if num_posts >= 1000 and days_since_most_recent_activity <= 7:
+    #         return True
+    #     elif num_likes >= 1000 and days_since_most_recent_activity <= 7:
+    #         return True
+    # else:
+        
+    #     elif num_followers >= 0 and num_followers < 100:
+    #         return False
+
+
+
+    # # If the value in get_time_lapsed_since_most_recent_activity_single_page() or get_time_lapsed_since_most_recent_activity_multi_page() changes
+    # # this check for most recent activity will need to change
+    # if num_posts < 0 or num_likes < 0 or num_followers < 0 or days_since_most_recent_activity == 9999:
+    #     # Error cases
+    #     return None
+    # else:
+    #     # Criteria for following
+    #     if (num_posts > 100 or num_likes > 100) and num_followers > 100 and days_since_most_recent_activity < 60:
+    #         return True
+    #     else:
+    #         return False
 
 
