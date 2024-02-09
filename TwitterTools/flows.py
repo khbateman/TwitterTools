@@ -293,7 +293,7 @@ def validate_accounts_to_follow(driver,
                         stop_checking_after_days_threshold_met = activity_within_days, 
                         already_loaded = True).days # important to get the int from the timedelta
         
-        # This will only be True or None with the num_likes value as -1
+        # Check the first page
         first_page_validation_result = meets_additional_account_following_criteria(
                                             num_posts = post_count, 
                                             num_likes = num_likes, 
@@ -333,7 +333,7 @@ def validate_accounts_to_follow(driver,
             
             if print_progress:
                 print(f" | Result: True (1st Page: {first_page_validation_result} Overall: {overall_validation_result})")
-        elif overall_validation_result == False:
+        elif first_page_validation_result == False or overall_validation_result == False :
             # Update row in file so it will be filtered out next time
             update_accounts_to_follow_row(handle = row["handle"], followed = True)
 
