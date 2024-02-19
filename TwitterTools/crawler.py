@@ -440,9 +440,7 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
     messages = ""
 
     for row_tuple in unfollow_df.iterrows():
-        print(f"Tabs open: {opened_tabs}/{number_to_unfollow}", end = "\r")
-
-        time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
+        print(f"Tabs open: {opened_tabs}/{number_to_unfollow}", end = "\r")        
 
         row = row_tuple[1]
 
@@ -451,6 +449,8 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
                                                                               row["url"], 
                                                                               stop_checking_after_days_threshold_met = unfollow_after_days,
                                                                               sleep_after_loading=sleep_after_loading)
+        
+        time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
         
         # Want to unfollow if they've done something on Twitter since I've followed them
         if days_since_last_activity < row["time_following"] or days_since_last_activity.days > 30:
