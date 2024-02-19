@@ -556,3 +556,19 @@ def get_rows_to_validate(num_rows_to_validate = -1):
         return filtered_rows
     else:
         return filtered_rows.iloc[:num_rows_to_validate, :]
+
+
+
+def clean_up_accounts_to_follow():
+    '''
+    This file automatically gets cleaned up on new searches, but this method can
+    clean up the data without a new search. This removes any row where the user
+    is listed as Followed == True
+    '''
+
+    # create an empty dataframe to simulate an empty search
+    empty_df = pd.DataFrame(columns = _get_accounts_to_follow_cols())
+
+    accounts_to_follow_df_to_excel(empty_df)
+
+    

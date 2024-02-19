@@ -375,21 +375,21 @@ def get_time_lapsed_since_most_recent_activity_multi_page(driver, urls, stop_che
 
 
 
-def get_time_lapsed_since_most_recent_activity(driver, base_profile_url, stop_checking_after_days_threshold_met = 7):
+def get_time_lapsed_since_most_recent_activity(driver, base_profile_url, stop_checking_after_days_threshold_met = 7, sleep_after_loading = 2):
 
     # Base user URL 
     base_user_url = driver.current_url
-    three_pages = [base_profile_url, base_profile_url + "/with_replies", base_profile_url + "/likes"]
+    three_pages = [base_profile_url + "/likes", base_profile_url, base_profile_url + "/with_replies"]
 
     # Go to base profile, replies, and likes and crawl posts
-    time_since_most_recent_activity = get_time_lapsed_since_most_recent_activity_multi_page(driver, three_pages, stop_checking_after_days_threshold_met)
+    time_since_most_recent_activity = get_time_lapsed_since_most_recent_activity_multi_page(driver, three_pages, stop_checking_after_days_threshold_met, sleep_after_loading)
         
     return time_since_most_recent_activity
 
 
 
 
-def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tabs=(0, 5), handles_to_skip = [], unfollow_after_days = 7): 
+def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tabs=(0, 5), handles_to_skip = [], unfollow_after_days = 7, sleep_after_loading = 2): 
     '''
     `driver` - logged in driver
 
@@ -400,6 +400,8 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
     `handles_to_skip` - handles that shouldn't be unfollowed even if they meet unfollow criteria
 
     `unfollow_after_days` - threshold that after a user has been followed for this many days, they're eligible to unfollow
+
+    `sleep_after_loading` - how much time driver should sleep after loading interior pages to check time since recent activitiy
     '''   
     # # Read in overall following list
     # df = get_following_df()
@@ -445,7 +447,10 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
         row = row_tuple[1]
 
         # Go to  profile page and get the date of their latest tweet / reply / like
-        days_since_last_activity = get_time_lapsed_since_most_recent_activity(driver, row["url"], stop_checking_after_days_threshold_met = unfollow_after_days)
+        days_since_last_activity = get_time_lapsed_since_most_recent_activity(driver, 
+                                                                              row["url"], 
+                                                                              stop_checking_after_days_threshold_met = unfollow_after_days,
+                                                                              sleep_after_loading=sleep_after_loading)
         
         # Want to unfollow if they've done something on Twitter since I've followed them
         if days_since_last_activity < row["time_following"] or days_since_last_activity.days > 30:
