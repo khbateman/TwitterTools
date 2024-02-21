@@ -72,6 +72,15 @@ USER_TEST_CASES_ADDTL_CRITERIA = [
                                   ([10, -1, 1001, 9999], False),
                                   ([10000, -1, 1001, 9999], None),
 
+                                # Test for protected
+                                  ([200, 200, 200, 1, True], False),
+                                
+                                # Test for blocked pages (make sure protected is False)
+                                  ([200, 200, 200, 1, False, ""], True),
+                                  ([200, 200, 200, 1, False, "This account doesn’t exist"], False),
+                                  ([200, 200, 200, 1, False, "Account suspended"], False),
+                                  ([200, 200, 200, 1, False, "Caution: This account is temporarily restricted"], False),
+                                  ([200, 200, 200, 1, False, "Caution: This profile may include potentially sensitive content"], False),
 
                                 # Tests from Excel file
                                 ([100000, 100000, 100000, 9999], None),
@@ -455,8 +464,24 @@ USER_TEST_CASES_ADDTL_CRITERIA = [
 def test_is_account_to_follow_accounts_to_skip(test_case):
     # Using above test cases as arguments to the function, make
     # sure the result is the second element in the tuple
-    assert user_management.meets_additional_account_following_criteria(
-        test_case[0][0],
-        test_case[0][1],
-        test_case[0][2],
-        test_case[0][3]) == test_case[1]
+    if len(test_case[0]) == 6:
+        assert user_management.meets_additional_account_following_criteria(
+            test_case[0][0],
+            test_case[0][1],
+            test_case[0][2],
+            test_case[0][3],
+            test_case[0][4],
+            test_case[0][5]) == test_case[1]
+    elif len(test_case[0]) == 5:
+        assert user_management.meets_additional_account_following_criteria(
+            test_case[0][0],
+            test_case[0][1],
+            test_case[0][2],
+            test_case[0][3],
+            test_case[0][4]) == test_case[1]
+    else:
+        assert user_management.meets_additional_account_following_criteria(
+            test_case[0][0],
+            test_case[0][1],
+            test_case[0][2],
+            test_case[0][3]) == test_case[1]

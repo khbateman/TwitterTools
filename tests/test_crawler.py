@@ -1087,3 +1087,79 @@ class TestCrawlUserPageFollowCriteria():
 
         # Check to make sure this default failing value hasn't been changed. Other functions check for it explicitly.
         assert crawler.get_time_lapsed_since_most_recent_activity_single_page(get_driver, already_loaded = True).days == 9999
+
+
+    def test_get_protected_status_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/page_load_fail.html")
+        get_driver.get("file://" + file_path)
+
+        # Page load fail should get fallback option of False
+        assert crawler.get_protected_status(get_driver) == False
+    
+    def test_get_protected_status_02(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # Standard non-protected page
+        assert crawler.get_protected_status(get_driver) == False
+    
+
+    def test_get_protected_status_03(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/protected_profile_page.html")
+        get_driver.get("file://" + file_path)
+
+        # Protected page
+        assert crawler.get_protected_status(get_driver) == True
+
+    
+    def test_get_blocked_page_center_text_01(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/page_load_fail.html")
+        get_driver.get("file://" + file_path)
+
+        # Failed load entirely
+        assert crawler.get_blocked_page_center_text(get_driver) == ""
+    
+    def test_get_blocked_page_center_text_02(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/test_user_profile_page_01-posts.html")
+        get_driver.get("file://" + file_path)
+
+        # Standard page, should not be any blocked page text
+        assert crawler.get_blocked_page_center_text(get_driver) == ""
+    
+
+    def test_get_blocked_page_center_text_03(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/account_doesnt_exist_profile_page.html")
+        get_driver.get("file://" + file_path)
+
+        # Account doesn't exist
+        assert crawler.get_blocked_page_center_text(get_driver) == "This account doesn’t exist"
+    
+    def test_get_blocked_page_center_text_04(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/account_suspended_profile_page.html")
+        get_driver.get("file://" + file_path)
+
+        # Account suspended
+        assert crawler.get_blocked_page_center_text(get_driver) == "Account suspended"
+    
+    def test_get_blocked_page_center_text_05(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/account_restricted_profile_page.html")
+        get_driver.get("file://" + file_path)
+
+        # Account restricted
+        assert crawler.get_blocked_page_center_text(get_driver) == "Caution: This account is temporarily restricted"
+    
+    def test_get_blocked_page_center_text_06(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/account_sensitive_profile_page.html")
+        get_driver.get("file://" + file_path)
+
+        # Account sensitive
+        assert crawler.get_blocked_page_center_text(get_driver) == "Caution: This profile may include potentially sensitive content"

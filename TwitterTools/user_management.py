@@ -32,7 +32,7 @@ def is_account_to_follow(user, already_followed = [], accounts_to_skip = []):
 
 
 
-def meets_additional_account_following_criteria(num_posts, num_likes, num_followers, days_since_most_recent_activity):
+def meets_additional_account_following_criteria(num_posts, num_likes, num_followers, days_since_most_recent_activity, protected = False, blocked_page_center_text = ""):
     '''
     After accounts have met basic criteria and saved to accounts_to_follow.xlsx, 
     they can be further scraped to see if they meet additional criteria. This speeds
@@ -50,8 +50,13 @@ def meets_additional_account_following_criteria(num_posts, num_likes, num_follow
 
     `None` - if criteria wasn't successfully crawled
     '''
-
-    if num_posts >= 0 and num_posts < 100:
+    if protected:
+        return False
+    elif blocked_page_center_text != "":
+        for phrase in ["This account", "suspended", "Caution"]:
+            if phrase in blocked_page_center_text:
+                return False
+    elif num_posts >= 0 and num_posts < 100:
         return False
     elif num_followers == -1:
         return None

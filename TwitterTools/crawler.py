@@ -671,6 +671,53 @@ def get_post_count(driver):
 
 
 
+def get_protected_status(driver):
+    '''
+    `driver` should be an already logged-in Selenium driver navigated to a user's profile page
+
+    Returns
+    ----
+    True if account is protected or False if account isn't protected OR if it can't tell (since not being protected won't filter anything out)
+    
+    '''
+    protected = False
+
+    try:
+        # Note multiple wildcards because empty pages are slightly different
+        svg_label = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div[1]/div/div[1]/div/div/span/span[2]/span/span/div/div/*''').get_attribute("aria-label")
+
+        
+        if svg_label == "Protected account":
+            protected = True
+    except:
+        pass
+        
+
+    return protected
+
+
+
+def get_blocked_page_center_text(driver):
+    '''
+    `driver` should be an already logged-in Selenium driver navigated to a user's profile page
+
+    Returns
+    ----
+    An empty string by default or the center text on certain pages like blocked, suspended, doesn't exist, etc.
+    
+    '''
+    center_text = ""
+
+    try:
+        # Note multiple wildcards because empty pages are slightly different
+        center_text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[2]/div/div[1]/span''').text
+    except:
+        pass
+        
+    return center_text
+
+
+
 def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5)):
     '''
     `sleep_between_tabs` will generate a random number between the two values and that value to sleep

@@ -288,6 +288,8 @@ def validate_accounts_to_follow(driver,
         num_likes = -1
         post_count = get_post_count(driver)
         follower_count = get_follower_count(driver)
+        protected_status = get_protected_status(driver)
+        blocked_page_center_text = get_blocked_page_center_text(driver)
         days_since_last_post = get_time_lapsed_since_most_recent_activity_single_page(
                         driver, 
                         stop_checking_after_days_threshold_met = activity_within_days, 
@@ -298,7 +300,9 @@ def validate_accounts_to_follow(driver,
                                             num_posts = post_count, 
                                             num_likes = num_likes, 
                                             num_followers = follower_count, 
-                                            days_since_most_recent_activity = days_since_last_post)
+                                            days_since_most_recent_activity = days_since_last_post,
+                                            protected=protected_status,
+                                            blocked_page_center_text=blocked_page_center_text)
         
 
         if first_page_validation_result is None:
