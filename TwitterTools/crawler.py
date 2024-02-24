@@ -252,8 +252,10 @@ def scrape_single_follow_page(driver, url, sleep_after_loading = 2.0, sleep_afte
         
         # Change flag back to False. If we find new users, 
         # it will change to True to keep loop running
+        # Scrolling 3,000 is the limit before lines get missed
+        # 3,500 started missing elements
         users_added = False
-        next_scroll_y += 1000
+        next_scroll_y += 3000
 
         # Go from the last div at the bottom towards the top
         for div in all_divs[::-1]:
