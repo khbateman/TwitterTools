@@ -45,7 +45,8 @@ def update_excel_file_with_accounts_to_follow(
         scrape_post_quotes = True, 
         scrape_post_reposts = True, 
         scrape_post_likes = True,
-        sleep_between_actions = (0, 7)):
+        sleep_between_actions = (0, 7),
+        posts_ready_to_follow = False):
     # start with existing lists
     # Make everyone we add "followed" = False, which will be changed
     # as we actually open the tabs to follow them so we don't have to recrawl this
@@ -175,7 +176,7 @@ def update_excel_file_with_accounts_to_follow(
                     users = users,
                     source = f"Liked post: {cleaned_url}",
                     validate_users = True,
-                    ready_to_follow = True,
+                    ready_to_follow = posts_ready_to_follow,
                     accounts_following = handles_following,
                     accounts_to_skip = handles_to_skip
                 )
@@ -208,7 +209,7 @@ def update_excel_file_with_accounts_to_follow(
                     users = new_accounts,
                     source = f"Reposted post: {cleaned_url}",
                     validate_users = True,
-                    ready_to_follow = True,
+                    ready_to_follow = posts_ready_to_follow,
                     accounts_following = handles_following,
                     accounts_to_skip = handles_to_skip
                 )
@@ -226,7 +227,7 @@ def update_excel_file_with_accounts_to_follow(
                     users = new_accounts,
                     source = f"Quoted post: {cleaned_url}",
                     validate_users = True,
-                    ready_to_follow = True,
+                    ready_to_follow = posts_ready_to_follow,
                     accounts_following = handles_following,
                     accounts_to_skip = handles_to_skip
                 )
