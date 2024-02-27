@@ -447,9 +447,11 @@ def open_tabs_for_unfollowing(driver, number_to_unfollow = 10, sleep_between_tab
         row = row_tuple[1]
 
         # Go to  profile page and get the date of their latest tweet / reply / like
+        # If they've had activity since I've followed them on any page, don't need to check further pages
+        # Making it -1 to avoid scenarios where days line up but it was actually earlier on that same day
         days_since_last_activity = get_time_lapsed_since_most_recent_activity(driver, 
                                                                               row["url"], 
-                                                                              stop_checking_after_days_threshold_met = unfollow_after_days,
+                                                                              stop_checking_after_days_threshold_met = row["time_following"].days - 1,
                                                                               sleep_after_loading=sleep_after_loading)
         
         time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
