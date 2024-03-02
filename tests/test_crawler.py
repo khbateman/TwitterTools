@@ -1113,6 +1113,15 @@ class TestCrawlUserPageFollowCriteria():
 
         # Protected page
         assert crawler.get_protected_status(get_driver) == True
+    
+
+    def test_get_protected_status_04(self, get_driver):
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_protected_and_verified.html")
+        get_driver.get("file://" + file_path)
+
+        # Protected page AND verified
+        assert crawler.get_protected_status(get_driver) == True
 
     
     def test_get_blocked_page_center_text_01(self, get_driver):

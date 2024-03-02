@@ -689,10 +689,16 @@ def get_protected_status(driver):
     try:
         # Note multiple wildcards because empty pages are slightly different
         svg_label = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div[1]/div/div[1]/div/div/span/span[2]/span/span/div/div/*''').get_attribute("aria-label")
-
         
         if svg_label == "Protected account":
             protected = True
+        
+        # Scenario where there's a verified AND protected user, so we need to check the second SVG too (again needs to be a * not svg for some reason)
+        svg_label = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div[1]/div/div[1]/div/div/span/span[2]/span/span/div[2]/div/*''').get_attribute("aria-label")
+
+        if svg_label == "Protected account":
+            protected = True
+
     except:
         pass
         
