@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name='TwitterTools',
     packages=find_packages(include=["TwitterTools"]),
-    version='1.3.23',
+    version='1.3.25',
     description='Tools for crawling interacting with Twitter',
     author='Kenan Bateman',
     install_requires=[],

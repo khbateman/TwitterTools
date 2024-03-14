@@ -24,6 +24,24 @@ from .data_tools import *
 
 
 
+def sleep(seconds, print_progress = True, message_prefix = ""):
+    '''
+    Extends base sleep method to allow printing the timer while sleeping
+
+    The message_prefix can provide a message before the timer, which displays as time_elapsed/total_time
+    '''
+    for i in range(seconds):
+        if print_progress:
+            print(f"{message_prefix}{i}/{seconds}", end = "\r")
+            
+        time.sleep(1)
+            
+    # print to create a new line after the carriage returns above
+    if print_progress:
+        print(f"{message_prefix}{seconds}/{seconds}")
+
+
+
 def get_all_user_divs(driver, user_divs_xpath = """//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/section/div/div/div[*]"""):
     '''
     Function takes in an argument of a `selenium` driver already on a page
@@ -728,7 +746,7 @@ def get_blocked_page_center_text(driver):
 
 
 
-def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5)):
+def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5), sleep_after_load_error = 120):
     '''
     `sleep_between_tabs` will generate a random number between the two values and that value to sleep
     '''
@@ -752,6 +770,21 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
         
         time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
 
+        # See if we successfully loaded a page by checking follower count
+        follower_count = get_follower_count(driver)
+
+        # If there's an error, don't save the page as followed and pause to hopefully reset limit
+        # Otherwise, update df
+        if follower_count == -1:
+            sleep(sleep_after_load_error, 
+                  print_progress=True, 
+                  message_prefix=f"Page load failed for {handle}. Sleeping to reset: ")
+        else:
+            # Valid loaded page (although may have not loaded some posts)
+            # Update dataframe so we don't revisit this again in the future
+            # (before we re-run account finding script)
+            accounts_to_follow_df.loc[accounts_to_follow_df["handle"] == handle, "followed"] = True
+
         if i < len(handles_to_follow) - 1:
             # open a new tab for next loop
             # Copy cookies to put in new tab to avoid relogging in
@@ -760,9 +793,7 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
             for cookie in cookies:
                 driver.add_cookie(cookie)
 
-        # Update dataframe so we don't revisit this again in the future
-        # (before we re-run account finding script)
-        accounts_to_follow_df.loc[accounts_to_follow_df["handle"] == handle, "followed"] = True
+        
     
     # Using standard to_excel rather than this modules save method to avoid
     # removing the accounts to follow rows in cases of error
