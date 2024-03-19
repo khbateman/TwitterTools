@@ -665,6 +665,16 @@ def get_follower_count(driver):
     except:
         pass
 
+    try:
+        # Path changes slightly when there is a protected page
+        text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[5]/div[2]/div/span[1]/span''').text
+
+        follower_count = parse_string_number_to_int(text)
+    except:
+        pass
+
+    
+
     return follower_count
 
 
@@ -746,9 +756,11 @@ def get_blocked_page_center_text(driver):
 
 
 
-def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5), sleep_after_load_error = 120):
+def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0, 5), sleep_after_load_error = 120, sleep_after_loading_accounts = (50, 120)):
     '''
     `sleep_between_tabs` will generate a random number between the two values and that value to sleep
+
+    `sleep_after_loading_accounts` is a tuple where the first value is the number of accounts in between the pauses and the second value is the length to pause
     '''
 
     # accounts_to_follow_df = pd.read_excel("accounts_to_follow.xlsx")
@@ -762,6 +774,7 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
     print(f"Following {num_to_open} - {handles_to_follow}")
 
     for i in range(len(handles_to_follow)):
+
         
         handle = handles_to_follow[i]
         driver.get(f"https://www.twitter.com/{handle}")
@@ -769,6 +782,11 @@ def open_tabs_for_following(driver, num_to_follow = 20, sleep_between_tabs = (0,
         print(f"({i + 1} / {num_to_open}) Opened - {handle}")
         
         time.sleep(random.randint(sleep_between_tabs[0], sleep_between_tabs[1]))
+
+        # Sleep after loading so many accounts
+        if (i + 1) % sleep_after_loading_accounts[0] == 0:
+            sleep(sleep_after_loading_accounts[1], True, f"Sleeping after loading {sleep_after_loading_accounts[0]} accounts: ")
+
 
         # See if we successfully loaded a page by checking follower count
         follower_count = get_follower_count(driver)

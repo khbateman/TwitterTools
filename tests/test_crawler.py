@@ -1009,6 +1009,14 @@ class TestCrawlUserPageFollowCriteria():
 
         assert crawler.get_follower_count(get_driver) == -1
     
+    def test_get_follower_count_06(self, get_driver):
+        # Protected page
+        current_dir = os.path.dirname(__file__)
+        file_path = os.path.join(current_dir, "Testing_Resources/user_protected_pg.html")
+        get_driver.get("file://" + file_path)
+
+        assert crawler.get_follower_count(get_driver) == 1306
+    
 
     def test_get_posts_count_01(self, get_driver):
         current_dir = os.path.dirname(__file__)
