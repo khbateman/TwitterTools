@@ -667,12 +667,19 @@ def get_follower_count(driver):
 
     try:
         # Path changes slightly when there is a protected page
-        text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[5]/div[2]/div/span[1]/span''').text
+        text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[*]/div[2]/div/span[1]/span''').text
 
         follower_count = parse_string_number_to_int(text)
     except:
         pass
 
+    # try:
+    #     # Path changes slightly when there is a protected page
+    #     text = driver.find_element(By.XPATH, '''//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/div/div[1]/div/div[*]/div[2]/div/span[1]/span''').text
+
+    #     follower_count = parse_string_number_to_int(text)
+    # except:
+    #     pass
     
 
     return follower_count
