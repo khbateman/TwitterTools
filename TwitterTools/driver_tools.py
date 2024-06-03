@@ -24,7 +24,8 @@ def create_driver():
 
 
 def log_in_twitter(driver, username, password, sleep_time = 2):
-    driver.get("https://twitter.com/login")
+    # driver.get("https://twitter.com/login")
+    driver.get("https://x.com/login")
     time.sleep(sleep_time)
     driver.find_element(By.TAG_NAME, "input").send_keys(f"{username}\n")
     # driver.find_element(By.TAG_NAME, "input").send_keys("\n")
